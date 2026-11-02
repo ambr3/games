@@ -27,13 +27,18 @@ is built on inside the game itself, under About.
 
 ## Features
 
-- Version 0.1.27
+- Version 0.1.28
 - The games: Seclusa Blocks, Seclusa Klondike, Seclusa Munch, Seclusa Pyramid,
   Word Puzzle
 - Sound, how-to-play, theme and about buttons across the top
 - Your scores and settings are remembered on your device
 - Add it to your home screen and it opens on its own, no browser needed, and
   works with no internet connection
+
+## HTTP Observatory
+
+GitHub Pages cannot send custom security headers, so [MDN HTTP Observatory](https://developer.mozilla.org/en-US/observatory) rates this site **B** ([report](Scan%20results%20-%20HTTP%20Observatory%20_%20MDN.pdf)).
+For a static same-origin PWA with a tight page CSP that is expected and fine — the missing headers are a host limit, not a gap in how the app itself behaves.
 
 ## Usage
 

@@ -4,6 +4,14 @@ All notable changes to Seclusa Games. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.28] - 2026-11-02
+
+### Added
+- MDN HTTP Observatory scan report (B on GitHub Pages); README notes why that grade is expected for this static PWA
+
+### Changed
+- Cache name and manifest version **0.1.28**
+
 ## [0.1.27] - 2026-11-02
 
 ### Added
