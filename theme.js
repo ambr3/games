@@ -370,7 +370,9 @@
                 var controls = el("div", "card");
                 controls.appendChild(infoRow("Start", "any key, or a tap"));
                 controls.appendChild(infoRow("Steer", "arrow keys, or swipe"));
+                controls.appendChild(infoRow("Fire", "Space, or the FIRE button on touch"));
                 controls.appendChild(infoRow("Pause", "End, or the pause button on touch"));
+                controls.appendChild(infoRow("Hands", "Left or Right puts FIRE on your preferred side"));
                 body.appendChild(controls);
 
                 body.appendChild(

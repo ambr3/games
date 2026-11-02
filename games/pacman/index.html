@@ -105,8 +105,12 @@
             Steering is swipe-only on touch: a pad was worse than one gesture. Fire is
             the exception — Space has no thumb equivalent once a swipe is steering, and
             a tap both fires and clears the held direction, which fights a held swipe.
-            The fire button only shoots.
+            The fire button only shoots. L/R picks which thumb side it sits on.
         -->
+        <div class="shell-hand" role="group" aria-label="Fire button side">
+            <button class="shell-hand-btn" id="fireHandLeft" type="button" aria-pressed="false">Left</button>
+            <button class="shell-hand-btn" id="fireHandRight" type="button" aria-pressed="true">Right</button>
+        </div>
         <button class="shell-pause" id="pauseBtn" type="button" aria-label="Pause">&#10073;&#10073;</button>
         <button class="shell-fire" id="fireBtn" type="button" aria-label="Fire">FIRE</button>
     </div>

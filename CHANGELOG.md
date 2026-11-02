@@ -4,6 +4,12 @@ All notable changes to Seclusa Games. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.30] - 2026-11-02
+
+### Changed
+- Seclusa Munch FIRE sits up and in from the corner; Left/Right hand mode mirrors it (saved as `ssc.munch-fire-hand`)
+- Cache name and manifest version **0.1.30**
+
 ## [0.1.29] - 2026-11-02
 
 ### Fixed

@@ -17,12 +17,11 @@
     var KEY_THEME_COLOR = PREF_PREFIX + "pref_key_theme_color";
     var KEY_NIGHT_MODE = PREF_PREFIX + "pref_key_night_mode";
     var KEY_SOUND_ENABLED = PREF_PREFIX + "pref_key_sound_enabled";
+    var KEY_FIRE_HAND = PREF_PREFIX + "munch-fire-hand";
     /*
-     * `ssc.munch-pad-side` and the `ssc.pacman-pad-side` it replaced are both gone, and
-     * deliberately not migrated: they recorded which edge the D-pad docked to, and there
-     * is no D-pad. The keys are left where they are in a returning player's storage rather
-     * than deleted — they are the launcher's to clear, they are two strings, and removing
-     * them from here would be this game reaching outside its own namespace to tidy up.
+     * Older builds stored D-pad side as `ssc.munch-pad-side` / `ssc.pacman-pad-side`.
+     * There is no pad now, but the same left/right meaning applies to the FIRE button,
+     * so those values are read once as a fallback when the new key is unset.
      */
 
     /* Must match theme.js and theme-game.js. Pacman carries its own copy of this
@@ -275,6 +274,7 @@
 
         bindPauseButton();
         bindFireButton();
+        bindFireHand();
     };
 
     /*
@@ -322,6 +322,48 @@
         btn.addEventListener("click", function (e) {
             if (e.detail === 0) press(e);
         });
+    };
+
+    /*
+     * FIRE side — right-hand default, left-hand mirror.
+     *
+     * Same idea as Blocks' hand mode: put the primary thumb control on the side the
+     * player prefers. Stored under `ssc.munch-fire-hand`; falls back to the old pad-side
+     * keys so a returning left-hand player does not have to set it again.
+     */
+    var readFireHand = function () {
+        var value = readPref(KEY_FIRE_HAND, "");
+        if (value === "left" || value === "right") return value;
+        var legacy = readPref(PREF_PREFIX + "munch-pad-side", "")
+            || readPref(PREF_PREFIX + "pacman-pad-side", "");
+        return legacy === "left" ? "left" : "right";
+    };
+
+    var applyFireHand = function (hand) {
+        hand = hand === "left" ? "left" : "right";
+        root.setAttribute("data-fire-hand", hand);
+        var leftBtn = document.getElementById("fireHandLeft");
+        var rightBtn = document.getElementById("fireHandRight");
+        if (leftBtn) leftBtn.setAttribute("aria-pressed", hand === "left" ? "true" : "false");
+        if (rightBtn) rightBtn.setAttribute("aria-pressed", hand === "right" ? "true" : "false");
+    };
+
+    var setFireHand = function (hand) {
+        hand = hand === "left" ? "left" : "right";
+        writePref(KEY_FIRE_HAND, hand);
+        applyFireHand(hand);
+    };
+
+    var bindFireHand = function () {
+        applyFireHand(readFireHand());
+        var leftBtn = document.getElementById("fireHandLeft");
+        var rightBtn = document.getElementById("fireHandRight");
+        if (leftBtn) {
+            leftBtn.addEventListener("click", function () { setFireHand("left"); });
+        }
+        if (rightBtn) {
+            rightBtn.addEventListener("click", function () { setFireHand("right"); });
+        }
     };
 
     if (document.readyState == "loading") {
