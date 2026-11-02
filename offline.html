@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <!--
+        The same policy as index.html, narrowed to what this page actually uses:
+        frame-src and media-src are 'none' because it embeds nothing and plays nothing.
+
+        The stylesheet below is inline, because this page has to render when the
+        stylesheet request is the thing that failed. Styles are allowed by *hash*,
+        not 'unsafe-inline': one value in this meta (and in the local server's
+        offline CSP). Editing that CSS means re-hashing it — `scripts/test_serve.py`
+        recomputes it from the document and fails if they drift apart.
+
+        upgrade-insecure-requests was the one directive this page was missing — it is
+        inert today, because nothing here is loaded over http, but a policy that
+        silently differs from every other document in the app is how the next
+        subresource someone adds arrives unupgraded.
+    -->
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'sha256-ZgWkbRWzJh2X5cDHiH/3KFxDyYH/BuUTB51CNfcP86I='; img-src 'self' data:; connect-src 'none'; font-src 'self'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
+    <meta http-equiv="Permissions-Policy"
+        content="camera=(), microphone=(), geolocation=(), payment=(), clipboard-read=(), usb=(), midi=(), serial=(), display-capture=(), accelerometer=(), gyroscope=(), magnetometer=(), idle-detection=(), screen-wake-lock=(), browsing-topics=(), interest-cohort=()">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+    <meta name="theme-color" content="#0d2340">
+    <title>Seclusa Games — Offline</title>
+    <link rel="stylesheet" href="theme.css">
+    <style>
+        /* Inline styles only: the offline page must render even if the CSS was
+           evicted, and a stylesheet request is one more thing that can fail. */
+        body {
+            display: grid;
+            place-content: center;
+            gap: 1rem;
+            min-height: 100dvh;
+            margin: 0;
+            padding: 2rem;
+            text-align: center;
+            font-family: var(--font-sans);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Seclusa Games</h1>
+    <p>You are offline and this page has not been cached yet.</p>
+    <p>Reconnect once to finish installing, then the games work offline.</p>
+    <p><a href="./">Try again</a></p>
+</body>
+
+</html>

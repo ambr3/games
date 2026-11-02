@@ -1,0 +1,510 @@
+/*
+ * Seclusa Games — launcher styles.
+ *
+ * The design tokens (--md-sys-color-*, --palette-*) all come from theme.css, which is
+ * the shared Material 3 system. This file only lays out the launcher itself: the
+ * game grid, and the full-bleed frame host a game runs in.
+ */
+
+/* ------------------------------------------------------------------ app shell */
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    /* Transparent on purpose: theme.css puts the surface colour on `html` and paints
+       the grid/vignette backdrop beneath `body`. A background here would hide it. */
+    color: var(--md-sys-color-on-surface, #1c1b1b);
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+}
+
+/* Both views are the full viewport; only one is ever visible. */
+
+.launcher,
+.stage {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    /* Stand clear of notches and the iOS home indicator. */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+        env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* The stage bar is a variant of the shared .shell-bar from theme.css. */
+
+.stage-bar {
+    display: flex;
+    align-items: center;
+    /*
+     * Wraps, so the game name can take a line of its own on a narrow screen. Without it
+     * the bar is `nowrap` and the name either overflows or has to be hidden outright —
+     * which is where it ended up, `display: none` below 700px, so the one piece of chrome
+     * that says which game you are in was the first thing dropped on every phone.
+     *
+     * Wrapping costs a line of height and never costs reachability: the controls stay on
+     * one row, all of them visible.
+     */
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: var(--md-sys-color-surface-container, #f0ebea);
+    border-bottom: 1px solid var(--md-sys-color-outline-variant, #cbc3c2);
+    flex: 0 0 auto;
+    /*
+     * Six controls now share this bar with the game name (back, fullscreen, sound,
+     * help, theme, about). Nothing here may push the bar wider than its column, and
+     * the name is given a floor of its own below — a truncated "WORD…" names nothing.
+     */
+    min-width: 0;
+}
+
+.stage-title {
+    flex: 1 1 auto;
+    /*
+     * A floor, so the controls give up space before the name does. Flex was happy to
+     * squeeze this down to an ellipsis. 7ch fits the shortest game name in the registry
+     * with room to spare; wider names still ellipsis, which is the correct sacrifice.
+     */
+    min-width: 7ch;
+    font: var(--type-title-medium);
+    letter-spacing: 0.06em;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/*
+ * Narrow screens: the controls must FIT, not scroll.
+ *
+ * `.header-button` is `flex: none` and the page is `overflow: hidden`, so at 360px the
+ * six controls plus the game name wanted 707px in a 360px box — Theme and About were
+ * simply clipped off the right edge with no way to reach them.
+ *
+ * There was an `overflow-x: auto` backstop here for a while, which made them reachable
+ * but meant every screen had to be scrolled sideways to reach About. That is the wrong
+ * trade: a control you have to scroll to find is a control most people never use. The
+ * controls now shrink, drop to short labels, and drop the game name (the browser tab and
+ * the PWA title already say which game is open) so the whole bar fits at 360px with
+ * nothing cut off and nothing to scroll.
+ *
+ * `lbl-long` / `lbl-short` live in the markup; `aria-label` on each button keeps the
+ * accessible name constant, so the short form is never the only name.
+ */
+.lbl-short {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .stage-bar {
+    gap: 4px;
+  }
+
+  /*
+   * Six labelled controls cannot fit a 360px bar — measured, they wanted ~440px. The
+   * app was previously made to fit by scrolling it sideways, which hid Theme and About
+   * off-screen; that is worse than not showing everything at once.
+   *
+   * How to play is what goes. It is a before-you-play reference, not a mid-game
+   * control, and it stays one tap away in the launcher menu beside the game list. The
+   * four that remain are things you reach for *while* playing — go back, fullscreen,
+   * sound, appearance — and they now all fit with nothing cut off.
+   */
+  #btn-stage-help {
+    display: none;
+  }
+
+  .stage-bar .header-button {
+    padding: 10px 10px;
+    font-size: 13px;
+    min-height: 44px;
+  }
+
+  .stage-bar .lbl-long {
+    display: none;
+  }
+
+  .stage-bar .lbl-short {
+    display: inline;
+  }
+
+  /*
+   * The name keeps its own line instead of being hidden.
+   *
+   * It was `display: none` here on the grounds that the tab title and the canvas already
+   * carry it. The tab title is not on screen while you are playing, and the canvas does
+   * not name most of these games at all — so the bar, the one place the name is visible
+   * for as long as the game is open, went without. Given a line of its own there is no
+   * longer a reason to drop it, and `order: -1` keeps it above the controls.
+   */
+  .stage-title {
+    flex: 0 0 100%;
+    order: -1;
+    min-width: 0;
+    text-align: left;
+  }
+}
+
+@media (max-width: 420px) {
+  .stage-bar {
+    gap: 3px;
+  }
+
+  .stage-bar .header-button {
+    padding: 11px 7px;
+    font-size: 12px;
+    min-height: 44px;
+  }
+}
+
+/*
+ * The narrowest phones still in use (a 320px viewport). At this width the bar is 22px
+ * over even with four-pixel padding, so sound goes too — the same reasoning as How to
+ * play above: what is left is navigation and appearance, and both of the dropped
+ * controls remain one tap away in the launcher menu beside the game list.
+ *
+ * The 44px touch height is kept at every width. Squeezing a tap area to fit a label is
+ * the wrong way round.
+ */
+@media (max-width: 340px) {
+  #btn-stage-sound {
+    display: none;
+  }
+
+  .stage-bar {
+    gap: 2px;
+    padding: 3px 2px;
+  }
+
+  .stage-bar .header-button {
+    padding: 11px 8px;
+    font-size: 12px;
+    min-height: 44px;
+  }
+}
+
+/*
+ * The stage bar's controls are deliberately smaller than the launcher's.
+ *
+ * It carries six of them plus the game name, and at the main bar's size the name lost
+ * its race against them and ellipsised. These are contextual controls over a running
+ * game, not the app's primary navigation, so a step down in scale is both the right
+ * hierarchy and what buys the name its space back.
+ */
+.stage-bar .header-button {
+    padding: 9px 15px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 8px;
+    border-width: 2px;
+    /* 44px is the smallest comfortable touch target, and these are the only
+       navigation a game has — this bar is a phone's primary control surface. */
+    min-height: 44px;
+}
+
+/* --------------------------------------------------------------------- launcher */
+
+.launcher-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 1rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/*
+ * The wordmark.
+ *
+ * Black-on-transparent artwork, so it needs inverting for a dark theme — otherwise it is
+ * a black shape on a near-black background. `filter: invert(1)` turns the black ink
+ * white and leaves the transparent pixels alone, which is the whole transform needed: the
+ * mark is a single ink and has no colour of its own to preserve.
+ *
+ * Width is capped rather than scaled with the viewport so it does not dominate a
+ * tablet, and it shrinks in steps rather than continuously so the letterforms stay
+ * crisp instead of being rasterised at an awkward intermediate size.
+ */
+/* The controller is square, so it is sized as one. The old wordmark was
+   1378x376 and took min(100%, 20rem) of width with height:auto; at that width
+   the same rule would have made the square 320px tall and pushed the whole
+   launcher down the screen. */
+.launcher-logo {
+    display: block;
+    width: min(100%, 7rem);
+    height: auto;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto 0.75rem;
+    opacity: 0.92;
+    border-radius: 14px;
+}
+
+[data-theme='dark'] .launcher-logo,
+[data-theme='dark'] .launcher-logo:hover {
+    filter: invert(1);
+}
+
+@media (max-width: 420px) {
+    .launcher-logo {
+        width: min(100%, 8rem);
+        margin-bottom: 1.1rem;
+    }
+}
+
+@media (min-height: 900px) {
+    /* Square, so the ceiling comes down with it. 24rem was the wordmark's
+       width and would be a 384px-tall block of controller. */
+    .launcher-logo {
+        width: min(100%, 11rem);
+    }
+}
+
+.launcher-blurb {
+    max-width: 34rem;
+    margin: 0 0 1rem;
+    text-align: center;
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface-variant, #4a4444);
+    line-height: 1.4;
+}
+
+.launcher-foot {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* All footer content in small print. */
+.launcher-credits {
+    margin: 0;
+    max-width: 34rem;
+    text-align: center;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--md-sys-color-on-surface-variant, #4a4444);
+}
+
+.launcher-credits a {
+    color: var(--md-sys-color-primary, #1b6b37);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.launcher-credits a:hover {
+    text-decoration-thickness: 2px;
+}
+
+.launcher-credits .flag {
+    width: 0.9em;
+    height: auto;
+    display: inline-block;
+    vertical-align: middle;
+    border-radius: 1px;
+}
+
+.launcher-credits .heart {
+    font-size: 0.85em;
+    line-height: 1;
+    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji',
+        'Twemoji Mozilla', sans-serif;
+}
+
+/* -------------------------------------------------------------------- the grid */
+
+.game-grid {
+    /*
+     * Flex rather than auto-fill grid: five tiles in a 3-column grid leave a
+     * dead cell. Wrapping with centered content keeps the bottom pair centred
+     * at every width without a breakpoint table.
+     */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    max-width: 52rem;
+}
+
+.game-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    flex: 1 1 9.5rem;
+    max-width: 15rem;
+    min-width: min(100%, 9.5rem);
+    padding: 0.6rem 0.5rem 0.7rem;
+    border: 1px solid var(--md-sys-color-outline-variant, #cbc3c2);
+    border-radius: 1rem;
+    background: var(--md-sys-color-surface-container-low, #f6f1f0);
+    color: inherit;
+    font: inherit;
+    text-align: center;
+    cursor: pointer;
+    transition:
+        transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 160ms ease,
+        border-color 160ms ease,
+        background-color 160ms ease;
+    animation: tile-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.game-tile:nth-child(1) { animation-delay: 40ms; }
+.game-tile:nth-child(2) { animation-delay: 80ms; }
+.game-tile:nth-child(3) { animation-delay: 120ms; }
+.game-tile:nth-child(4) { animation-delay: 160ms; }
+.game-tile:nth-child(5) { animation-delay: 200ms; }
+
+@keyframes tile-in {
+    /* Transform only — opacity fill-mode left tiles invisible if CSS hot-reloaded mid-flight. */
+    from {
+        transform: translateY(10px) scale(0.98);
+    }
+    to {
+        transform: translateY(0) scale(1);
+    }
+}
+
+.game-tile:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--md-sys-color-primary, #1b6b37) 55%, var(--md-sys-color-outline-variant, #cbc3c2));
+    background: color-mix(in srgb, var(--md-sys-color-primary, #1b6b37) 8%, var(--md-sys-color-surface-container-low, #f6f1f0));
+    box-shadow:
+        0 8px 22px rgb(0 0 0 / 0.14),
+        0 0 0 1px color-mix(in srgb, var(--md-sys-color-primary, #1b6b37) 22%, transparent);
+}
+
+.game-tile:active {
+    transform: translateY(0);
+}
+
+.game-tile:focus-visible {
+    outline: 3px solid var(--md-sys-color-primary, #1b6b37);
+    outline-offset: 2px;
+}
+
+.game-tile-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    object-fit: contain;
+    /* Tiles sit on a surface, so the icons need their own plate to read on both
+       light and dark palettes. */
+    border-radius: 0.75rem;
+    background: var(--md-sys-color-surface-container-highest, #e5dedd);
+    padding: 0.35rem;
+    transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 160ms ease;
+}
+
+.game-tile:hover .game-tile-icon {
+    transform: scale(1.06);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--md-sys-color-primary, #1b6b37) 28%, transparent);
+}
+
+.game-tile-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1.2;
+}
+
+.game-tile-tag {
+    font-size: 0.92rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--md-sys-color-on-surface-variant, #4a4444);
+}
+
+/* Tile icon failed to load — collapse it so the name carries the tile on its own.
+   A class rather than an inline style, to keep `style-src 'self'` strict. */
+.game-tile-icon.is-missing {
+    visibility: hidden;
+}
+
+/* A tile for a game that has not landed yet — kept visible so the launcher
+   doesn't quietly hide missing work. */
+.game-tile.is-pending {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------------- stage */
+
+/*
+ * The frame host. The iframe is absolutely positioned to fill it, so a game that
+ * assumes a full-viewport canvas gets exactly that and nothing of ours shows
+ * through around the edges.
+ */
+.stage-frame {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    background: var(--md-sys-color-surface-container, #f0ebea);
+}
+
+.stage-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: transparent;
+}
+
+/* -------------------------------------------------------------- load failure */
+
+/*
+ * Shown when a frame cannot load its document. Styled with classes rather than an
+ * inline `style` attribute so `style-src 'self'` stays strict — no 'unsafe-inline'.
+ */
+.load-failure {
+    display: grid;
+    place-content: center;
+    gap: 0.5rem;
+    height: 100%;
+    padding: 2rem;
+    text-align: center;
+}
+
+.load-failure p {
+    margin: 0;
+}
+
+.load-failure-heading {
+    font-weight: 700;
+}
+
+.load-failure-detail {
+    opacity: 0.7;
+    font-size: 1rem;
+    word-break: break-word;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .game-tile {
+        transition: none;
+        animation: none;
+    }
+
+    .game-tile:hover {
+        transform: none;
+    }
+
+    .game-tile:hover .game-tile-icon {
+        transform: none;
+    }
+}

@@ -1,0 +1,57 @@
+# What is not in here
+
+Kept so the omissions are decisions rather than oversights.
+
+## Dropped from the upstream remake
+
+The previous engine was a fork of masonicGIT/pacman, which was itself a fork of
+shaunew/pac-man. These did not come through the rewrite, and the rewrite is deliberately
+smaller than what it replaced:
+
+- **Ms. Pac-Man.** Four mazes changing by act, the fruit that bounces around the board on
+  four routes, the chase-only ghost schedule, and the randomised scatter corners. All of it
+  is real Ms. Pac-Man behaviour and all of it is gone, because this is one game now and a
+  game picker with nothing in it is worse than no game picker.
+- **Crazy Otto** — Ms. Pac-Man's unreleased prototype, differing only in sprites.
+- **Cookie-Man** — the same rules on a procedurally generated maze every level, from a
+  1,451-line maze generator. This is the one genuinely interesting loss: procedural
+  generation is a bigger idea than anything else that went with it.
+- **Cutscenes** (Pac-Man 2-3, Ms. Pac-Man 2-3). Interlevel animations between acts, not a
+  rule of the game.
+- **Learn mode** (watch one ghost with its target drawn), **practice mode** (rewind, slow
+  motion, invincibility, attract mode) and the **VCR** behind them. All of it existed to
+  study ghosts, and it cost a state-save/restore layer threaded through every object in the
+  game.
+- **The score table screen** — the little screen of food and ghost icons.
+- **Turbo.** A cabinet modification that ran the player at twice the speed of the ghosts'
+  eyes with the eating drag switched off. It was one line on a menu, and it was reported as
+  a bug — the game at its correct speed is not a hundred miles an hour, but the game at
+  turbo speed is indistinguishable from broken to anyone who did not ask for it.
+- **Two player.** The cabinets could be wired for two players alternating on one screen;
+  that is a board modification, not a rule.
+
+## Left in deliberately
+
+- **Pip's overflow bug.** Not a bug to fix. It shapes how the maze plays, and Nix's
+  targeting is measured from the wrong square it produces.
+- **Sub-tile speeds** via sixteen-frame patterns rather than pixels-per-second. A tile-based
+  or float-speed engine cannot reproduce them.
+- **The arcade's cosmetic pauses.** Four seconds of READY! before each life, a second of
+  stillness while an eaten ghost's score is on the board, the maze flashing before the next
+  one. They are the arcade's rhythm, and they are what make the last pellet feel like an
+  event.
+
+## Worth adding
+
+- **DPR-aware rendering.** The canvas is sized in CSS pixels, so it is soft on a high-DPI
+  screen. Doing it properly means sizing the backing store by `devicePixelRatio` and
+  scaling the transform to match — which also makes the walls' curves land on device
+  pixels instead of being resampled into them.
+- **Sound unlocking on the first gesture is already done**, but the clips are still nine
+  separate files. One sprite sheet of samples cut by the Web Audio API would be a single
+  request.
+- **A pause overlay that names the state it paused in.** Pause dims the frame and says
+  PAUSED, which is enough.
+- **Level colouring.** The maze is one palette for all 256 levels, which is the arcade's
+  behaviour; a hue that walks the Material 3 palette as the levels climb would mark the
+  difficulty without changing a single rule.

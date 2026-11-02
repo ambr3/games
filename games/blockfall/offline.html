@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- frame-ancestors is ignored in a <meta> tag. See index.html for the note. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; font-src 'self'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), clipboard-read=(), usb=(), midi=(), serial=(), display-capture=(), accelerometer=(), gyroscope=(), magnetometer=(), idle-detection=(), screen-wake-lock=(), browsing-topics=(), interest-cohort=()">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="referrer" content="no-referrer">
+    <meta name="theme-color" content="#0a0a0f">
+    <title>Seclusa Blocks — Offline</title>
+    <!--
+        The app's shared design system first, then this game's own stylesheet, which is
+        the order index.html uses. This page is what a player sees when the network is
+        gone, so it is the worst possible place for it to render without the palette the
+        rest of the app is in — and the worker precaches ../../theme.css for exactly this
+        document, so the stylesheet is available offline whether or not it is requested.
+    -->
+    <link rel="stylesheet" href="../../theme.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!--
+        Centring is in the stylesheet, not a style attribute: this page's own CSP is
+        `style-src 'self'` with no 'unsafe-inline', so an inline style attribute here
+        was silently dropped and the fallback rendered flush to the top-left corner.
+    -->
+    <div class="game-container offline-fallback">
+        <h1 class="title">Seclusa Blocks</h1>
+        <p>Offline — this page is not in the cache yet.</p>
+        <p>Reconnect once to finish installing, then the game works fully offline.</p>
+        <p><a href="./">Try again</a></p>
+        <!--
+            The privacy badge used to sit here. Privacy is a property of the whole app,
+            not of one game, so it is stated once in the launcher's About dialog.
+        -->
+    </div>
+</body>
+</html>

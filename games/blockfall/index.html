@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-mono data-warm>
+<head>
+    <meta charset="UTF-8">
+    <!--
+        `frame-ancestors` is deliberately absent: browsers ignore it in a <meta> tag.
+        The local dev server sends frame-ancestors 'self' so the launcher can embed
+        this game; GitHub Pages sends neither header.
+
+        frame-src 'none' stays: it restricts what THIS document may frame, and Blocks
+        frames nothing.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; font-src 'self'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), clipboard-read=(), usb=(), midi=(), serial=(), display-capture=(), accelerometer=(), gyroscope=(), magnetometer=(), idle-detection=(), screen-wake-lock=(), browsing-topics=(), interest-cohort=()">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="referrer" content="no-referrer">
+    <meta name="description" content="Seclusa Blocks — privacy-first falling-block puzzle. No tracking, all local.">
+    <meta name="theme-color" content="#0a0a0f" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="color-scheme" content="light dark">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Seclusa Blocks">
+    <meta name="application-name" content="Seclusa Blocks">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="icon-192.png" sizes="192x192">
+    <link rel="apple-touch-icon" href="icon-512.png" sizes="512x512">
+    <title>Seclusa Blocks</title>
+    <!--
+        The shared Material 3 design system first (it writes the --md-sys-color-*
+        roles for [data-palette]/[data-theme]), then this game's own stylesheet,
+        which builds its tokens on top of those roles.
+    -->
+    <link rel="stylesheet" href="../../theme.css">
+    <!--
+        Puts data-palette / data-theme on this frame's <html> before first paint,
+        and listens for `storage` so a palette picked in the launcher — or in any
+        other game — lands here without a reload.
+    -->
+    <script src="../../theme-game.js"></script>
+    <link rel="stylesheet" href="../../seclusa-base.css">
+    <link rel="stylesheet" href="../../mono.css">
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+    <noscript>
+        <p class="noscript-note">JavaScript is required to play Seclusa Blocks. Everything runs locally in your browser.</p>
+    </noscript>
+    <div class="game-container">
+        <header class="hud" id="hud">
+            <div class="hud-stats" id="statsPanel">
+                <div class="stat">
+                    <span class="stat-k">Score</span>
+                    <span class="stat-v" id="scoreDisplay">0</span>
+                    <span class="stat-s">Best <span id="bestDisplay">0</span> · <span id="linesDisplay">0</span> lines</span>
+                </div>
+                <div class="stat stat-vault" id="vaultBox">
+                    <span class="stat-k"><span id="goalDisplay">Vault</span> · P<span id="levelDisplay">1</span></span>
+                    <span class="stat-v" id="vaultDisplay">0/10</span>
+                    <div class="streak-meter vault-meter" id="vaultMeter" aria-hidden="true">
+                        <div class="streak-meter-fill" id="vaultMeterFill"></div>
+                    </div>
+                    <span class="stat-s hidden" id="goalSub">Clear lines to fill</span>
+                    <span class="stat-s hidden" id="levelProgress" aria-hidden="true"></span>
+                </div>
+                <div class="stat stat-streak" id="streakBox">
+                    <span class="stat-k">Streak</span>
+                    <span class="stat-v" id="streakDisplay">—</span>
+                    <div class="streak-meter" id="streakMeter" aria-hidden="true">
+                        <div class="streak-meter-fill" id="streakMeterFill"></div>
+                    </div>
+                </div>
+                <div class="stat stat-next">
+                    <span class="stat-k">Next <span class="next-piece-name" id="nextPieceName">—</span></span>
+                    <canvas id="nextCanvas" width="100" height="100"></canvas>
+                </div>
+            </div>
+            <div class="hud-actions">
+                <button class="icon-btn" id="musicBtn" title="Toggle Music" type="button" aria-label="Music">🎵</button>
+                <button class="icon-btn" id="sfxBtn" title="Toggle Sounds" type="button" aria-label="Sounds">🔊</button>
+                <button class="icon-btn" id="pauseBtn" title="Pause" type="button" aria-label="Pause">⏸</button>
+            </div>
+        </header>
+
+        <div class="board-panel" id="boardPanel">
+            <div class="game-board vault-frame" id="gameBoard">
+                <canvas id="gameCanvas"></canvas>
+                <div class="board-toast hidden" id="boardToast" aria-live="polite" aria-atomic="true"></div>
+                <div class="overlay" id="startOverlay">
+                    <div class="overlay-panel">
+                    <!--
+                        No name here either. The launcher bar above says
+                        `SECLUSA BLOCKS` for as long as the game is open; a second copy
+                        in this panel restated it, and Paused and Game Over each carry
+                        their own heading, so nothing needed a name here.
+                    -->
+                    <p class="start-rules"><span class="rule-chip">Full rows only</span><span class="rule-chip">Quad bonus</span></p>
+                    <p class="start-hint" id="startGoalHint">Fill whole rows to clear · Vault bonus at 10</p>
+                    <p class="control-hint control-hint-touch swipe-hint">Swipe · ▼ soft · ⬇ hard</p>
+                    <p class="control-hint control-hint-keyboard">Arrows · Space · P</p>
+                    <label class="diff-control" for="diffSlider">
+                        <span class="diff-head">
+                            <span>Pressure <strong id="diffValue">1</strong></span>
+                            <span class="diff-hint" id="diffHint">Easy</span>
+                        </span>
+                        <input type="range" id="diffSlider" min="1" max="100" value="1" step="1"
+                            aria-valuemin="1" aria-valuemax="100" aria-valuenow="1"
+                            aria-label="Starting pressure 1 easy to 100 hard">
+                        <span class="diff-ends" aria-hidden="true"><span>1 Easy</span><span>100 Hard</span></span>
+                    </label>
+                    <div class="hand-toggle" role="group" aria-label="Handedness">
+                        <button class="btn btn-secondary hand-btn" id="handLeftBtn" type="button" aria-pressed="false">Left hand</button>
+                        <button class="btn btn-secondary hand-btn" id="handRightBtn" type="button" aria-pressed="true">Right hand</button>
+                    </div>
+                    <button class="btn btn-primary hidden" id="continueBtn" type="button">Continue</button>
+                    <button class="btn btn-primary" id="startBtn" type="button">Start</button>
+                    </div>
+                </div>
+                <div class="overlay hidden" id="pauseOverlay">
+                    <div class="overlay-panel">
+                    <h2>Paused</h2>
+                    <div class="hand-toggle" role="group" aria-label="Handedness">
+                        <button class="btn btn-secondary hand-btn" id="pauseHandLeftBtn" type="button" aria-pressed="false">Left hand</button>
+                        <button class="btn btn-secondary hand-btn" id="pauseHandRightBtn" type="button" aria-pressed="true">Right hand</button>
+                    </div>
+                    <button class="btn btn-primary" id="resumeBtn" type="button">Resume</button>
+                    <button class="btn btn-secondary" id="restartFromPause" type="button">New game</button>
+                    </div>
+                </div>
+                <div class="overlay hidden" id="gameOverOverlay">
+                    <div class="overlay-panel">
+                    <h2>Game Over</h2>
+                    <p class="overlay-stat">Score <span id="finalScore">0</span></p>
+                    <p class="overlay-stat">Best <span id="finalBest">0</span></p>
+                    <p class="overlay-new-best hidden" id="newBestBanner">New best!</p>
+                    <p class="overlay-stat overlay-stat-dim">Lines <span id="finalLines">0</span> · Pressure <span id="finalLevel">1</span></p>
+                    <button class="btn btn-primary" id="retryBtn" type="button">Play Again</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-rail" id="controlRail" aria-hidden="true"></div>
+
+        <button class="dpad-btn hard-drop" id="hardDropBtn" type="button" aria-label="Hard drop">⬇</button>
+        <div class="controls-main" id="controlsMain">
+            <button class="rotate-btn" id="rotateBtn" type="button" aria-label="Rotate">↻</button>
+            <div class="dpad">
+                <button class="dpad-btn" id="leftBtn" type="button" aria-label="Left">◀</button>
+                <button class="dpad-btn" id="downBtn" type="button" aria-label="Soft drop">▼</button>
+                <button class="dpad-btn" id="rightBtn" type="button" aria-label="Right">▶</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!--
+        The "No data leaves your device" badge used to sit here. Privacy is a property of
+        the whole app, not of one game, so it is stated once in the Seclusa Games
+        launcher About dialog rather than repeated in every game.
+    -->
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="navy" data-theme="light" data-mono data-warm>
+
+<head>
+    <meta charset="utf-8">
+
+    <!--
+        Seclusa Games — app shell.
+
+        CSP differs from the per-game policies on two axes:
+          frame-src / child-src 'self' — every game is hosted in an iframe (see shell.js)
+          media-src 'self'             — Munch streams audio
+
+        `frame-ancestors` is deliberately absent: browsers ignore it in a <meta> tag.
+        The local dev server sends it as a response header; GitHub Pages does not, so
+        framing there relies on same-origin without an X-Frame-Options DENY.
+    -->
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'self'; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
+    <meta http-equiv="Permissions-Policy"
+        content="camera=(), microphone=(), geolocation=(), payment=(), clipboard-read=(), usb=(), midi=(), serial=(), display-capture=(), accelerometer=(), gyroscope=(), magnetometer=(), idle-detection=(), screen-wake-lock=(), browsing-topics=(), interest-cohort=()">
+
+    <title>Seclusa Games</title>
+    <meta name="description"
+        content="Seclusa Games — a privacy-first collection of browser games. No ads, no tracking, no third-party requests. Everything stays on your device.">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#0d2340">
+    <!--
+        Without this the app is not installable.
+
+        The root policy sets `manifest-src 'self'`, which shows a link was intended here,
+        but no <link rel="manifest"> existed — only blockfall and word-puzzle had their
+        own. Chrome never discovers the manifest on its own, so display:standalone, the
+        icons, theme_color and start_url were all inert and "Install app" was
+        unavailable from the one screen every user reaches first.
+    -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="robots" content="noindex, nofollow">
+    <!--
+        Before the stylesheets, and synchronous on purpose.
+
+        This is what stops the app painting itself light and then correcting: `<html>`
+        declares data-theme="light" (the right answer with JavaScript off), and the script
+        that reads the real preference cannot run until theme.js at the end of the body.
+        That gap is a white flash on a dark-mode phone, which is what "the header is much
+        lighter than it should be" turned out to be. See theme-boot.js.
+    -->
+    <script src="theme-boot.js"></script>
+    <meta name="referrer" content="no-referrer">
+
+    <!--
+        The app version. This and manifest.json are the only two places it is
+        written down anywhere in the project.
+
+        There are deliberately no `?v=` query strings on any stylesheet or script.
+        Those were the previous mechanism and they were a standing bug: a literal
+        that has to be bumped by hand in six files, one of which being forgotten
+        means a returning visitor silently keeps the old file. Caching is now keyed
+        on this version through the service worker cache name, which sw.js reads
+        from manifest.json — so the version is stated once and cannot drift.
+
+        Read by the About dialog in theme.js, which is the only place it is shown.
+    -->
+    <meta name="version" content="0.1.27">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Seclusa">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+    <link rel="stylesheet" href="theme.css">
+    <!-- The shared black-and-white palette, then the mapping that puts it
+         behind this app's Material 3 roles. Opt-in via data-mono on <html>. -->
+    <link rel="stylesheet" href="seclusa-base.css">
+    <link rel="stylesheet" href="mono.css">
+    <link rel="stylesheet" href="launcher.css">
+</head>
+
+<body>
+
+    <!-- Launcher view: the game grid. -->
+    <div class="launcher" id="launcher" data-ui-chrome>
+        <div class="shell-bar">
+            <!--
+                The app's own name, back in the bar.
+
+                It used to live here and was moved down into the body, because at 360px the
+                bar already wanted 456px of controls in a 342px box and the wordmark was
+                what got dropped. That is still true of the buttons, so the title does not
+                take their room: below 560px it moves onto its own line and the four
+                controls keep the row to themselves, where all of them stay reachable.
+
+                It is the app, not the page, so it belongs with the app's controls. The
+                stage bar has carried `#stage-title` for the game's own name all along;
+                this puts the launcher's counterpart in the same place.
+            -->
+            <span class="shell-title">Seclusa Games</span>
+            <button type="button" class="header-button" id="btn-sound" aria-pressed="true">Sound</button>
+            <button type="button" class="header-button" id="btn-help">How to play</button>
+            <button type="button" class="header-button" id="btn-night"
+                    aria-pressed="false" title="Theme">Auto</button>
+            <button type="button" class="header-button" id="btn-about">About</button>
+        </div>
+
+        <main class="launcher-body">
+            <!--
+                The mark, which stays down here with the thing it names.
+
+                The bar carries the app's name (`.shell-title` above) but not its icon: a
+                512px mark has no business in a 44px-tall row, and the bar is where the
+                controls live. The controller here is the same mark the app installs as,
+                generated from one file by scripts/make_game_icons.py so the two cannot
+                drift apart. The wide SECLUSA GAMES wordmark is brand/logo.png and is no
+                longer the logo on screen.
+            -->
+            <img class="launcher-logo" src="icons/icon-512.png"
+                 alt="Seclusa Games" width="512" height="512"
+                 fetchpriority="high" decoding="async">
+
+            <p class="launcher-blurb">
+                Five games, one app. Everything runs in your browser — nothing to sign
+                in to, nothing sent anywhere. Open <strong>About</strong> for the details.
+            </p>
+
+            <!--
+                A plain grid of buttons, deliberately NOT role="list".
+
+                The list role was here while each tile also carried role="listitem",
+                which overrode the tiles' native button role — every tile announced as
+                "list item" with no indication it could be activated. Dropping the role
+                from the tiles then left a list whose children were not list items,
+                which is itself invalid ARIA. Five independent controls in a row read
+                fine to a screen reader without list semantics at all.
+            -->
+            <div class="game-grid" id="game-grid"></div>
+
+            <!--
+                Footer. The pill carries the licence and a link to the source, which used
+                to live only inside the About dialog and to read that there was nothing to
+                link to. There is something to link to now.
+
+                The link is a plain anchor rather than something the shell wires up, so it
+                still works with JavaScript disabled — which is the one case where a
+                licence obligation most needs to be met.
+            -->
+            <footer class="launcher-foot">
+                <p class="launcher-credits">
+                    Card games forked from
+                    <a href="https://github.com/TobiasBielefeld/Simple-Solitaire"
+                        target="_blank" rel="noopener noreferrer">Simple Solitaire Collection</a>
+                    via <a href="https://github.com/ambr3/Seclusa-Solitaire"
+                        target="_blank" rel="noopener noreferrer">Seclusa Solitaire</a>;
+                    Munch's arcade rules by
+                    <a href="https://home.comcast.net/~jpittman2/pacman/pacmandossier.html"
+                        target="_blank" rel="noopener noreferrer">Jamey Pittman</a>.
+                    · <a href="https://ambr3.pages.dev/oss/seclusa-games/"
+                        target="_blank" rel="noopener noreferrer">GPL-3.0 · Source</a>
+                    · Made with <span class="heart" role="img" aria-label="love">&#10084;&#65039;</span>
+                    <svg class="flag" viewBox="0 0 60 30" role="img" aria-label="United Kingdom">
+                        <clipPath id="uk-clip"><rect width="60" height="30" /></clipPath>
+                        <g clip-path="url(#uk-clip)">
+                            <rect width="60" height="30" fill="#012169" />
+                            <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6" />
+                            <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"
+                                clip-path="polygon(0 0, 0 30, 30 15)" />
+                            <path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10" />
+                            <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6" />
+                        </g>
+                    </svg>
+                </p>
+            </footer>
+        </main>
+    </div>
+
+    <!--
+        Game view: a single iframe host. The game document is never injected into
+        this page — see shell.js for why.
+    -->
+    <div class="stage" id="stage" hidden>
+        <div class="stage-bar" data-ui-chrome>
+            <button type="button" class="header-button" id="btn-back" aria-label="Back to games"><span class="lbl-long">&#8592; Games</span><span class="lbl-short">&#8592;</span></button>
+            <span class="stage-title" id="stage-title"></span>
+            <!--
+                One fullscreen control for all five games, here rather than inside each
+                one. The stage bar is the chrome every game already sits under, so a
+                single button covers them all and there is nothing to duplicate — or keep
+                in step — across five separate games.
+
+                Each control carries a long and a short label; CSS swaps between them at
+                narrow widths. Six full labels cannot fit a 360px bar, and the previous
+                answer to that was a horizontally scrolling bar, which hid Theme and
+                About off-screen. `aria-label` keeps the accessible name constant either
+                way, so the short form is never the only name.
+            -->
+            <button type="button" class="header-button" id="btn-stage-fullscreen" aria-label="Toggle fullscreen" aria-pressed="false"><span class="lbl-long">Fullscreen</span><span class="lbl-short">Full</span></button>
+            <button type="button" class="header-button" id="btn-stage-sound" aria-label="Toggle sound" aria-pressed="true">Sound</button>
+            <button type="button" class="header-button" id="btn-stage-help" aria-label="How to play"><span class="lbl-long">How to play</span><span class="lbl-short">How to</span></button>
+            <button type="button" class="header-button" id="btn-stage-about">About</button>
+        </div>
+        <div class="stage-frame" id="stage-frame"></div>
+    </div>
+
+    <script src="theme.js"></script>
+    <script src="shell.js"></script>
+
+</body>
+
+</html>

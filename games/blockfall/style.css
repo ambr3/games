@@ -1,0 +1,1575 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /*
+         * ---------------------------------------------------------------------------
+         * THEME TOKENS
+         *
+         * Every colour below is derived from the shared Material 3 roles that
+         * ../../theme.css writes. There are no palette hex values in this file
+         * except the fourteen block colours, and those are not chrome — see
+         * "BLOCK COLOURS" below.
+         *
+         * `color-mix()` against black/white gives the light/dark shading of a
+         * single role (a button's top face, its pressed "3D" bottom edge), which
+         * is what the old fixed palette was doing by hand.
+         * ---------------------------------------------------------------------------
+         */
+        :root {
+            --bg-dark: var(--md-sys-color-surface-container-lowest);
+            --bg-mid: var(--md-sys-color-surface-container-low);
+            --bg-panel: var(--md-sys-color-surface-container);
+            --bg-panel-2: var(--md-sys-color-surface-container-high);
+            --bg-control: var(--md-sys-color-surface-container-high);
+
+            /* The old fixed palette was orange; `primary` is whatever the user picked. */
+            --accent: var(--md-sys-color-primary);
+            --accent-bright: color-mix(in srgb, var(--md-sys-color-primary) 40%, white);
+            --accent-dim: color-mix(in srgb, var(--md-sys-color-primary) 82%, black);
+            --accent-deep: color-mix(in srgb, var(--md-sys-color-primary) 66%, black);
+            --accent-glow: color-mix(in srgb, var(--md-sys-color-primary) 40%, transparent);
+            --accent-glow-soft: color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent);
+
+            /* The "Vault" accent. Was always purple; now it is the palette's
+             * secondary hue, so it changes with the palette like everything else. */
+            --accent-secondary: var(--md-sys-color-secondary);
+            --accent-secondary-bright: color-mix(in srgb, var(--md-sys-color-secondary) 38%, white);
+            --accent-secondary-dim: color-mix(in srgb, var(--md-sys-color-secondary) 84%, black);
+            --accent-secondary-deep: color-mix(in srgb, var(--md-sys-color-secondary) 66%, black);
+            --accent-secondary-glow: color-mix(in srgb, var(--md-sys-color-secondary) 45%, transparent);
+
+            /* The streak meter wants a third, still-distinct hue. */
+            --accent-tertiary: var(--md-sys-color-tertiary);
+            --accent-tertiary-bright: color-mix(in srgb, var(--md-sys-color-tertiary) 42%, white);
+            --accent-tertiary-deep: color-mix(in srgb, var(--md-sys-color-tertiary) 70%, black);
+
+            --text: var(--md-sys-color-on-surface);
+            --text-dim: var(--md-sys-color-on-surface-variant);
+            --border: var(--md-sys-color-outline-variant);
+            --border-glow: color-mix(in srgb, var(--md-sys-color-primary) 32%, transparent);
+
+            --danger: var(--md-sys-color-error);
+            --danger-bright: color-mix(in srgb, var(--md-sys-color-error) 38%, white);
+            --danger-dim: color-mix(in srgb, var(--md-sys-color-error) 86%, black);
+            --danger-deep: color-mix(in srgb, var(--md-sys-color-error) 68%, black);
+            --danger-glow: color-mix(in srgb, var(--md-sys-color-error) 40%, transparent);
+            --warning: color-mix(in srgb, var(--md-sys-color-tertiary) 72%, var(--md-sys-color-error));
+
+            /*
+             * The full-cover state screens (Start / Paused / Game over) sit *on* the
+             * board rather than over the page, so they are a sheet, not a scrim. The
+             * old build was a 92% black sheet, which is right on a black board and a
+             * black hole in a light page. Light mode gets a light sheet; the dark
+             * block below restores the original.
+             */
+            --bf-overlay-bg: color-mix(in srgb, var(--md-sys-color-scrim) 10%, var(--md-sys-color-surface-container-lowest));
+            --bf-frame-ring: color-mix(in srgb, var(--md-sys-color-scrim) 55%, transparent);
+
+            /*
+             * The page vignette. A 55% black vignette is invisible on a black page
+             * and turns a light page grey at the edges, so light mode gets a much
+             * weaker one — enough to keep the shape, not enough to read as dirt.
+             */
+            --bf-page-vignette: color-mix(in srgb, var(--md-sys-color-scrim) 9%, transparent);
+
+            /*
+             * Hairlines need an alpha floor, or a one-pixel rule stops reading as a
+             * stroke and starts reading as a row of dots. The decorative grid keeps its
+             * own fainter ink; borders use these. See ../../theme.css.
+             */
+            --hairline: color-mix(in srgb, var(--md-sys-color-on-surface) 30%, transparent);
+            --hairline-strong: color-mix(in srgb, var(--md-sys-color-on-surface) 55%, transparent);
+            --grid-ink: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+
+            /*
+             * NOT a hairline: button bevels, tile rims and surface gradients. These were
+             * always a few percent of ink and they stay that way — raising them to the
+             * hairline floor turns every bevel into a visible stripe.
+             */
+            --edge-ink: color-mix(in srgb, var(--md-sys-color-on-surface) 10%, transparent);
+
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-right: env(safe-area-inset-right, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-left: env(safe-area-inset-left, 0px);
+            /*
+             * Was a monospace stack — this game used a terminal/developer aesthetic. The
+             * user asked for one font across the app, so it now resolves to the shared
+             * stack in theme.css like every other game. Anything that specifically needs
+             * tabular numerals (score counters, timers) should ask the font for them via
+             * `font-variant-numeric: tabular-nums` rather than switching typeface.
+             */
+            --font-dev: var(--font-sans);
+
+            /*
+             * BLOCK COLOURS — the one place a fixed palette is unavoidable.
+             *
+             * The rules are "connect 7+ cells of the SAME colour, edge to edge",
+             * so these fourteen hues *are* the game's data. Collapse them onto one
+             * palette and the game stops being playable. They therefore stay
+             * fixed, with a darker set for light mode so they keep their contrast
+             * against a light board, and they do not follow the palette.
+             *
+             * the game reads these through getComputedStyle() rather than keeping
+             * its own copy, so this stays the single source of truth.
+             */
+            --bf-piece-0: transparent;
+            --bf-piece-1: #ea580c;  /* orange */
+            --bf-piece-2: #7c3aed;  /* violet */
+            --bf-piece-3: #0284c7;  /* sky */
+            --bf-piece-4: #e11d48;  /* rose */
+            --bf-piece-5: #a16207;  /* ochre */
+            --bf-piece-6: #4f46e5;  /* indigo */
+            --bf-piece-7: #db2777;  /* pink */
+            --bf-piece-8: #0891b2;  /* cyan */
+            --bf-piece-9: #9333ea;  /* purple */
+            --bf-piece-10: #c2410c; /* burnt orange */
+            --bf-piece-11: #059669; /* emerald */
+            --bf-piece-12: #6366f1; /* periwinkle */
+            --bf-piece-13: #ca8a04; /* gold */
+            --bf-piece-14: #0d9488; /* teal */
+
+            /*
+             * CANVAS TOKENS.
+             *
+             * The board and the "next" preview are <canvas>, which CSS cannot
+             * restyle, so the game reads these and paints with them. Same reason
+             * they live here: one place decides what colour the board is.
+             */
+            --bf-canvas-well-top: color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 92%, var(--md-sys-color-primary));
+            --bf-canvas-well-mid: var(--md-sys-color-surface-container-lowest);
+            --bf-canvas-well-bot: var(--md-sys-color-surface-container-lowest);
+            --bf-canvas-vignette-in: color-mix(in srgb, var(--md-sys-color-primary) 6%, transparent);
+            --bf-canvas-vignette-out: color-mix(in srgb, var(--md-sys-color-scrim) 35%, transparent);
+            --bf-canvas-grid-major: color-mix(in srgb, var(--md-sys-color-primary) 7%, transparent);
+            --bf-canvas-grid-minor: var(--edge-ink);
+            --bf-canvas-wall-top: var(--md-sys-color-surface-container);
+            --bf-canvas-wall-mid: var(--md-sys-color-surface-container-low);
+            --bf-canvas-wall-bot: var(--md-sys-color-surface-container-lowest);
+            --bf-canvas-wall-edge: color-mix(in srgb, var(--md-sys-color-primary) 26%, transparent);
+            --bf-canvas-wall-rivet: color-mix(in srgb, var(--md-sys-color-primary) 45%, transparent);
+            --bf-canvas-ink: color-mix(in srgb, var(--md-sys-color-on-surface) 55%, transparent);
+            --bf-canvas-ink-soft: color-mix(in srgb, var(--md-sys-color-on-surface) 30%, transparent);
+            --bf-canvas-ink-shadow: color-mix(in srgb, var(--md-sys-color-scrim) 25%, transparent);
+            --bf-canvas-rim: var(--edge-ink);
+            --bf-canvas-rim-clear: color-mix(in srgb, var(--md-sys-color-on-surface) 70%, transparent);
+            --bf-canvas-glow: color-mix(in srgb, var(--md-sys-color-primary) 60%, transparent);
+            --bf-canvas-juice: var(--md-sys-color-primary);
+            --bf-canvas-flash-hot: color-mix(in srgb, var(--md-sys-color-primary) 45%, white);
+            --bf-canvas-flash-mid: var(--md-sys-color-primary);
+            --bf-canvas-flash-cool: color-mix(in srgb, var(--md-sys-color-primary) 80%, black);
+            --bf-canvas-ghost: var(--md-sys-color-on-surface);
+            --bf-canvas-next-well-top: var(--md-sys-color-surface-container-high);
+            --bf-canvas-next-well-bot: var(--md-sys-color-surface-container-high);
+        }
+
+        /*
+         * Dark mode needs more than the roles flipping: the design was built as a
+         * neon-on-black game, and a glow that reads as a highlight on black reads
+         * as mud on a light surface. These are the few treatments that change.
+         */
+        [data-theme='dark'] {
+            /*
+             * The next-piece preview reads as a lighter slab sitting on the HUD rather
+             * than a well sunk into it. Its colour was inherited from the light rules
+             * (`surface-container-high`), which in dark is lighter than the bar it sits
+             * on — so it looked like a white box stuck to the strip. It now matches the
+             * bar's own surface, which is what "a preview in a well" should look like.
+             */
+            --bf-canvas-next-well-top: var(--md-sys-color-surface-container-highest);
+            --bf-canvas-next-well-bot: var(--md-sys-color-surface-container-highest);
+
+            /* The original build: a near-black sheet and a heavy frame ring. */
+            --bf-overlay-bg: color-mix(in srgb, var(--md-sys-color-scrim) 92%, var(--md-sys-color-on-surface));
+            --bf-frame-ring: color-mix(in srgb, var(--md-sys-color-scrim) 85%, var(--md-sys-color-on-surface));
+            --bf-page-vignette: color-mix(in srgb, var(--md-sys-color-scrim) 55%, transparent);
+
+            /* Lift the well off pure black so the board edge is still visible. */
+            --bf-canvas-well-top: color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 88%, var(--md-sys-color-primary));
+            --bf-canvas-grid-minor: var(--edge-ink);
+            --bf-canvas-wall-top: var(--md-sys-color-surface-container-high);
+            --bf-canvas-wall-mid: var(--md-sys-color-surface-container);
+            --bf-canvas-wall-bot: var(--md-sys-color-surface-container-low);
+            --bf-canvas-ink-shadow: color-mix(in srgb, var(--md-sys-color-scrim) 30%, transparent);
+
+            --bf-piece-1: #f97316;
+            --bf-piece-2: #a78bfa;
+            --bf-piece-3: #38bdf8;
+            --bf-piece-4: #f43f5e;
+            --bf-piece-5: #eab308;
+            --bf-piece-6: #6366f1;
+            --bf-piece-7: #f472b6;
+            --bf-piece-8: #22d3ee;
+            --bf-piece-9: #c084fc;
+            --bf-piece-10: #fb923c;
+            --bf-piece-11: #34d399;
+            --bf-piece-12: #818cf8;
+            --bf-piece-13: #fbbf24;
+            --bf-piece-14: #2dd4bf;
+        }
+
+        /* Replaces the inline `style` attribute the noscript paragraph used to
+           carry. That attribute was blocked by `style-src 'self'` anyway. */
+        .noscript-note {
+            padding: 2rem;
+            text-align: center;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        @keyframes title-pulse {
+            0%, 100% { text-shadow: 0 0 8px var(--accent-glow-soft), 0 0 18px transparent; }
+            50% { text-shadow: 0 0 14px var(--accent-glow), 0 0 28px var(--accent-glow-soft); }
+        }
+
+        @keyframes board-aura {
+            0%, 100% {
+                box-shadow:
+                    0 0 0 1px var(--border-glow),
+                    0 0 28px color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent),
+                    0 0 56px color-mix(in srgb, var(--md-sys-color-scrim) 55%, transparent),
+                    inset 0 0 24px color-mix(in srgb, var(--md-sys-color-scrim) 35%, transparent);
+            }
+            50% {
+                box-shadow:
+                    0 0 0 1px color-mix(in srgb, var(--md-sys-color-primary) 42%, transparent),
+                    0 0 36px color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent),
+                    0 0 64px color-mix(in srgb, var(--md-sys-color-scrim) 50%, transparent),
+                    inset 0 0 24px color-mix(in srgb, var(--md-sys-color-scrim) 30%, transparent);
+            }
+        }
+
+        @keyframes btn-shine {
+            0%, 100% { box-shadow: 0 0 16px var(--accent-glow), 0 4px 0 var(--accent-deep); }
+            50% { box-shadow: 0 0 24px var(--accent-glow), 0 4px 0 var(--accent-deep); }
+        }
+
+        html, body {
+            height: 100%;
+            height: 100dvh;
+            overscroll-behavior: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: var(--font-dev);
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            background:
+                radial-gradient(ellipse 90% 70% at 50% 0%, color-mix(in srgb, var(--md-sys-color-primary) 7%, transparent), transparent 55%),
+                radial-gradient(ellipse 60% 50% at 100% 100%, color-mix(in srgb, var(--accent-secondary) 6%, transparent), transparent 50%),
+                radial-gradient(ellipse 50% 40% at 0% 80%, color-mix(in srgb, var(--accent-secondary) 4%, transparent), transparent 45%),
+                linear-gradient(180deg, var(--bg-mid) 0%, var(--bg-dark) 100%);
+            color: var(--text);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            padding: 0;
+            padding-top: var(--safe-top);
+            padding-right: var(--safe-right);
+            padding-bottom: var(--safe-bottom);
+            padding-left: var(--safe-left);
+            position: relative;
+        }
+
+        /*
+         * The page grid and vignette used to be drawn here by body::before / body::after.
+         * They are now the app-wide backdrop in theme.css (html::before / html::after),
+         * so every game wears the same one. Blocks' own `--edge-ink` is still used for
+         * its buttons, tiles and canvas grid below.
+         */
+
+        .game-container {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-rows: auto minmax(0, 1fr);
+            grid-template-areas:
+                "hud"
+                "board";
+            align-items: stretch;
+            justify-content: center;
+            column-gap: clamp(8px, 1.5vw, 18px);
+            row-gap: 6px;
+            width: 100%;
+            height: 100%;
+            max-width: none;
+            padding: 6px clamp(6px, 1.2vw, 14px);
+            margin: 0;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /*
+ * The offline fallback, served by sw.js when the game cannot be reached.
+ * Centring lives here rather than in a style attribute because the page's own CSP is
+ * `style-src 'self'` and has no 'unsafe-inline' to permit one.
+ */
+.offline-fallback {
+    place-content: center;
+    padding: 2rem;
+    text-align: center;
+}
+
+        /*
+         * One container, one border, no stacked rings.
+         *
+         * The bar carried three box-shadows (an outer hairline ring, a drop shadow and an
+         * inset highlight) on top of its own border and gradient. The outer ring doubled
+         * the left edge against the stats' own borders and was the main reason the strip
+         * looked busy. Now it is a single flat surface with a single hairline, which is
+         * the same treatment the launcher gives its own header bar.
+         */
+        .hud {
+            grid-area: hud;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            max-width: 100%;
+            padding: 8px 10px;
+            background: var(--bg-panel-2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 4px 14px color-mix(in srgb, var(--md-sys-color-scrim) 28%, transparent);
+        }
+
+        /*
+         * The "SECLUSA" wordmark is gone from the HUD. Every game already sits under
+         * the launcher's stage bar, which names the game it is running, so the only
+         * thing this added was a third row of competing type above the stats.
+         *
+         * Its grid column went with it — .hud was a three-column grid
+         * (brand / stats / actions) and is now two, so the stats take the space the
+         * brand was holding rather than sitting in a reserved-but-empty first column.
+         */
+        .hud-stats {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: stretch;
+            gap: 6px;
+            min-width: 0;
+            overflow: hidden;
+            /*
+             * Takes the space between the leading edge and the button group, and
+             * spreads the cells across it. The cells themselves size to their own
+             * content, so the slack is shared as even gaps rather than being swallowed
+             * as dead space inside oversized boxes (which is what read as content
+             * shoved to the left) or as one hole before the buttons.
+             */
+            flex: 1 1 auto;
+            justify-content: space-evenly;
+        }
+
+        /*
+         * Stats read as one strip, not four cards.
+         *
+         * This was three nested boxes deep — a bordered .hud card containing four
+         * bordered .stat cards, each with its own gradient and inset highlight. With
+         * four stats plus a preview plus five icon buttons, the bar carried twelve
+         * competing edges and read as cluttered rather than as chrome. The stats are now
+         * separated by a single hairline rule and carry no background, border or shadow
+         * of their own, so the eye reads one bar with dividers rather than a row of
+         * boxes. One container, one border.
+         */
+        .stat {
+            /*
+             * Sized to its own content, not stretched to an equal share.
+             *
+             * This was `flex: 1 1 0`, so all four cells came out 161px wide whether
+             * they held "Best 532 · 0 clears" or a single digit. The widest cell spent
+             * ~70px of empty space after its text, which is what made the whole strip
+             * read as content shoved to the left of oversized boxes.
+             */
+            flex: 0 1 auto;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 1px;
+            padding: 2px 12px;
+            background: none;
+            border: 0;
+            border-left: 1px solid var(--border);
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        /* The first stat sits against the bar's own left padding, so a leading rule
+           there would read as a stray line. */
+        .hud-stats > .stat:first-child {
+            border-left: 0;
+            padding-left: 4px;
+        }
+
+        .stat-k {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stat-v {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--accent);
+            font-variant-numeric: tabular-nums;
+            line-height: 1.15;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Was 7px — below the point where DM Sans holds its shapes, so the best-time
+           line under the score rendered as a smudge. */
+        .stat-s {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-dim);
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Meter + score line cover this — keep HUD short */
+        #goalSub,
+        #levelProgress {
+            display: none !important;
+        }
+
+        .stat-next {
+            flex: 0 0 auto;
+            align-items: center;
+            min-width: 56px;
+            padding: 3px 5px;
+        }
+
+        .stat-next .stat-k {
+            display: flex;
+            gap: 4px;
+            align-items: baseline;
+            max-width: 72px;
+        }
+
+        .stat-next .next-piece-name {
+            color: var(--accent);
+            font-size: 8px;
+            letter-spacing: 0.04em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stat-streak.streak-hot .stat-v {
+            animation: streak-pop 0.45s ease-out;
+        }
+
+        .hud-actions {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 4px;
+            flex: 0 0 auto;
+        }
+
+        .board-panel {
+            grid-area: board;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            min-height: 0;
+            height: 100%;
+            max-height: 100%;
+            overflow: hidden;
+        }
+
+        /* Pads are direct grid children — hidden until body.touch-pad */
+        .game-container > .dpad-btn.hard-drop,
+        .game-container > .controls-main {
+            display: none;
+            z-index: 5;
+            pointer-events: auto;
+        }
+
+        body.touch-pad .game-container > .dpad-btn.hard-drop {
+            display: flex;
+        }
+
+        body.touch-pad .game-container > .controls-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Portrait touch: board full width, pads on bottom row */
+        body.touch-pad:not(.landscape) .game-container {
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            grid-template-areas:
+                "hud hud hud"
+                "board board board"
+                "ldock mid rdock";
+        }
+
+        body.touch-pad:not(.landscape) .game-container > .dpad-btn.hard-drop {
+            grid-area: ldock;
+            align-self: end;
+            justify-self: start;
+            width: 120px;
+            max-width: none;
+            height: 48px;
+            font-size: 22px;
+            border-radius: 14px;
+        }
+
+        body.touch-pad:not(.landscape) .game-container > .controls-main {
+            grid-area: rdock;
+            align-self: end;
+            justify-self: end;
+            gap: 8px;
+        }
+
+        body.touch-pad.hand-left:not(.landscape) .game-container > .dpad-btn.hard-drop {
+            grid-area: rdock;
+            justify-self: end;
+        }
+
+        body.touch-pad.hand-left:not(.landscape) .game-container > .controls-main {
+            grid-area: ldock;
+            justify-self: start;
+        }
+
+        /* Landscape touch: pads on sides → taller board */
+        body.touch-pad.landscape .game-container {
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            grid-template-rows: auto minmax(0, 1fr);
+            grid-template-areas:
+                "hud hud hud"
+                "ldock board rdock";
+            column-gap: 8px;
+            row-gap: 4px;
+        }
+
+        body.touch-pad.landscape .game-container > .dpad-btn.hard-drop {
+            grid-area: ldock;
+            align-self: end;
+            justify-self: center;
+            width: 56px;
+            max-width: none;
+            height: min(170px, 48vh);
+            font-size: 24px;
+            border-radius: 16px;
+        }
+
+        body.touch-pad.landscape .game-container > .controls-main {
+            grid-area: rdock;
+            align-self: end;
+            justify-self: center;
+            gap: 8px;
+        }
+
+        body.touch-pad.hand-left.landscape .game-container > .dpad-btn.hard-drop {
+            grid-area: rdock;
+        }
+
+        body.touch-pad.hand-left.landscape .game-container > .controls-main {
+            grid-area: ldock;
+        }
+
+        .controls-main {
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .game-board {
+            position: relative;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 30%, color-mix(in srgb, var(--md-sys-color-primary) 4%, transparent), transparent 60%),
+                var(--bg-panel);
+            border: 2px solid color-mix(in srgb, var(--md-sys-color-primary) 35%, transparent);
+            border-radius: 28px 10px 28px 10px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 1px var(--border-glow),
+                0 0 28px color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent),
+                0 0 56px color-mix(in srgb, var(--md-sys-color-scrim) 55%, transparent),
+                inset 0 0 24px color-mix(in srgb, var(--md-sys-color-scrim) 35%, transparent);
+            animation: board-aura 5.5s ease-in-out infinite;
+            touch-action: none;
+            flex: 0 1 auto;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .game-board.vault-frame {
+            border-width: 3px 2px 3px 2px;
+            border-color: color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent) color-mix(in srgb, var(--accent-secondary) 35%, transparent) color-mix(in srgb, var(--md-sys-color-primary) 40%, transparent) color-mix(in srgb, var(--accent-tertiary) 25%, transparent);
+            border-radius: var(--panel-radius, 18px);
+            box-shadow:
+                0 0 0 1px var(--border-glow),
+                0 0 0 4px var(--bf-frame-ring),
+                0 0 32px color-mix(in srgb, var(--md-sys-color-primary) 18%, transparent),
+                0 0 64px color-mix(in srgb, var(--md-sys-color-scrim) 55%, transparent),
+                inset 0 0 28px color-mix(in srgb, var(--md-sys-color-scrim) 40%, transparent);
+        }
+
+        /*
+         * Removed: this was a second rounded rectangle drawn 6px inside the board, so the
+         * playfield read as a box inside a box. With the border, the two outer shadow
+         * rings and the canvas grid already carrying the edge, it added a line that
+         * looked like a misplaced inner frame and nothing else. It was purely decorative
+         * (pointer-events: none, no children), so removing it changes no behaviour.
+         */
+
+        @media (prefers-reduced-motion: reduce) {
+            .game-board,
+            .btn-primary,
+            .board-toast,
+            .board-toast.toast-pop,
+            .game-board.clear-pop,
+            .stat-streak.streak-hot .stat-v {
+                animation: none !important;
+            }
+        }
+
+        #gameCanvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse 70% 50% at 50% 40%, color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent), transparent 65%),
+                var(--bf-overlay-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 0;
+            z-index: 10;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        .overlay-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: min(320px, 100%);
+            padding: 22px 18px 18px;
+            border-radius: 18px;
+            background:
+                radial-gradient(ellipse 90% 55% at 50% 0%, color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent), transparent 55%),
+                linear-gradient(165deg, var(--md-sys-color-surface-container) 0%, var(--md-sys-color-surface-container) 55%, var(--md-sys-color-surface-container-low) 100%);
+            border: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 28%, transparent);
+            box-shadow:
+                0 0 0 1px color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent),
+                0 0 32px color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent),
+                0 18px 40px color-mix(in srgb, var(--md-sys-color-scrim) 50%, transparent),
+                inset 0 1px 0 var(--edge-ink);
+            animation: about-pop 0.26s ease-out;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .overlay-panel {
+                animation: none;
+            }
+        }
+
+        .overlay h2 {
+            font-size: clamp(20px, 5vw, 26px);
+            font-weight: 800;
+            color: var(--accent);
+            text-shadow: 0 0 20px var(--accent-glow), 0 0 40px var(--accent-glow-soft);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            animation: title-pulse 3.2s ease-in-out infinite;
+        }
+
+        .overlay p {
+            color: var(--text-dim);
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.45;
+            max-width: 240px;
+        }
+
+        .overlay #finalScore {
+            color: var(--text);
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .overlay-stat {
+            color: var(--text-dim);
+            font-size: 14px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .overlay-stat span {
+            color: var(--text);
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .overlay-stat-dim {
+            font-size: 12px;
+        }
+
+        .overlay-new-best {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--accent);
+            text-shadow: 0 0 14px var(--accent-glow);
+            margin: -4px 0 0;
+        }
+
+        .start-rules {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            max-width: 280px;
+            margin: 0;
+        }
+
+        .rule-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 11px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent);
+            background: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent);
+            border: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 35%, transparent);
+            box-shadow: 0 0 12px var(--accent-glow-soft), inset 0 1px 0 var(--edge-ink);
+        }
+
+        .start-hint {
+            color: var(--text-dim);
+            font-size: 11px !important;
+            max-width: 260px;
+            margin: 0;
+            letter-spacing: 0.04em;
+        }
+
+        .control-hint-keyboard {
+            display: none;
+            font-size: 11px;
+            color: var(--text-dim);
+            text-align: center;
+            margin-top: 2px;
+            max-width: 280px;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .control-hint-keyboard {
+                display: block;
+            }
+        }
+
+        .board-toast {
+            position: absolute;
+            left: 50%;
+            top: 12%;
+            transform: translateX(-50%);
+            z-index: 8;
+            pointer-events: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--bg-dark);
+            background: linear-gradient(180deg, var(--accent-bright), var(--accent));
+            box-shadow: 0 0 20px var(--accent-glow), 0 4px 0 var(--accent-deep);
+            white-space: nowrap;
+        }
+
+        .board-toast.toast-pop {
+            animation: toast-pop 0.42s cubic-bezier(0.2, 1.4, 0.4, 1);
+        }
+
+        .board-toast.hidden {
+            display: none;
+        }
+
+        @keyframes toast-pop {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(0.72); }
+            55% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.12); }
+            100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+        }
+
+        .game-board.clear-pop {
+            animation: board-clear-pop 0.34s ease-out;
+            transform-origin: center center;
+        }
+
+        @keyframes board-clear-pop {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.025); filter: brightness(1.12); }
+            100% { transform: scale(1); filter: none; }
+        }
+
+        .diff-control {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: min(260px, 88%);
+            margin: 2px 0 4px;
+            padding: 8px 10px;
+            background: color-mix(in srgb, var(--md-sys-color-scrim) 28%, transparent);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .diff-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+        }
+
+        .diff-head strong {
+            color: var(--accent);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .diff-hint {
+            color: var(--accent);
+            font-size: 10px;
+            letter-spacing: 0.1em;
+        }
+
+        .diff-control input[type="range"] {
+            width: 100%;
+            margin: 2px 0;
+            accent-color: var(--accent);
+            height: 22px;
+            cursor: pointer;
+        }
+
+        .diff-ends {
+            display: flex;
+            justify-content: space-between;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            min-height: 48px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 800;
+            font-family: var(--font-dev);
+            cursor: pointer;
+            transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease, filter 0.15s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: translateY(2px) scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 45%, var(--accent-dim) 100%);
+            color: var(--bg-dark);
+            box-shadow: 0 0 16px var(--accent-glow), 0 4px 0 var(--accent-deep);
+            animation: btn-shine 2.8s ease-in-out infinite;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.06);
+            box-shadow: 0 0 26px var(--accent-glow), 0 4px 0 var(--accent-deep);
+        }
+
+        .btn-primary:active {
+            box-shadow: 0 0 12px var(--accent-glow), 0 1px 0 var(--accent-deep);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(180deg, var(--md-sys-color-surface-container-high), var(--bg-control));
+            color: var(--text);
+            border: 1px solid var(--border);
+            box-shadow: 0 3px 0 var(--md-sys-color-surface-container-low);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-dim);
+            background: linear-gradient(180deg, var(--md-sys-color-surface-container-highest), var(--bg-control));
+        }
+
+        .btn-secondary:active {
+            box-shadow: 0 1px 0 var(--md-sys-color-surface-container-low);
+        }
+
+        @keyframes streak-pop {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.18); color: var(--accent-bright); text-shadow: 0 0 16px var(--accent-glow); }
+            100% { transform: scale(1); }
+        }
+
+        .streak-meter {
+            margin-top: 2px;
+            height: 3px;
+            border-radius: 999px;
+            background: var(--edge-ink);
+            overflow: hidden;
+            box-shadow: inset 0 1px 2px color-mix(in srgb, var(--md-sys-color-scrim) 35%, transparent);
+        }
+
+        .stat .streak-meter {
+            margin-top: 2px;
+            height: 3px;
+        }
+
+        .streak-meter-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--accent-bright), var(--accent) 55%, var(--accent-tertiary));
+            box-shadow: 0 0 8px var(--accent-glow);
+            transition: width 0.2s ease;
+        }
+
+        .streak-meter.meter-hot .streak-meter-fill {
+            box-shadow: 0 0 12px var(--accent-glow), 0 0 18px var(--accent-secondary-glow);
+        }
+
+        .vault-meter .streak-meter-fill {
+            background: linear-gradient(90deg, var(--accent-tertiary), var(--accent) 55%, var(--accent-tertiary));
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .streak-meter-fill {
+                transition: none;
+            }
+        }
+
+        .next-piece-name {
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            color: var(--accent);
+            min-height: 0;
+            margin: 0;
+        }
+
+        #nextCanvas {
+            display: block;
+            margin: 0 auto;
+            background:
+                radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--md-sys-color-primary) 6%, transparent), transparent 65%),
+                var(--bg-control);
+            border-radius: 6px;
+            width: 40px;
+            height: 40px;
+            box-shadow: inset 0 0 0 1px var(--edge-ink), inset 0 2px 8px color-mix(in srgb, var(--md-sys-color-scrim) 35%, transparent);
+        }
+
+        .rotate-btn {
+            width: 120px;
+            height: 76px;
+            background: linear-gradient(180deg, var(--accent-secondary-bright) 0%, var(--accent-secondary) 55%, var(--accent-secondary-dim) 100%);
+            border: 1px solid var(--hairline);
+            border-radius: 20px;
+            color: white;
+            font-size: 34px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+                0 0 18px var(--accent-secondary-glow),
+                0 5px 0 var(--accent-secondary-deep),
+                inset 0 1px 0 var(--edge-ink);
+            transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.15s ease;
+            touch-action: manipulation;
+        }
+
+        .rotate-btn:active {
+            transform: translateY(3px) scale(0.96);
+            box-shadow:
+                0 0 12px var(--accent-secondary-glow),
+                0 2px 0 var(--accent-secondary-deep),
+                inset 0 1px 0 var(--edge-ink);
+        }
+
+        .dpad {
+            display: flex;
+            gap: 14px;
+        }
+
+        .dpad-btn {
+            width: 88px;
+            height: 88px;
+            background: linear-gradient(180deg, var(--md-sys-color-surface-container-high) 0%, var(--bg-control) 100%);
+            border: 2px solid var(--border);
+            border-radius: 22px;
+            color: var(--text);
+            font-size: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+                0 4px 0 var(--md-sys-color-surface-container-lowest),
+                inset 0 1px 0 var(--edge-ink);
+            transition: transform 0.1s ease, background 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease, color 0.1s ease;
+            touch-action: manipulation;
+        }
+
+        .dpad-btn:active {
+            background: linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 100%);
+            color: var(--bg-dark);
+            border-color: var(--accent);
+            transform: translateY(2px) scale(0.96);
+            box-shadow:
+                0 0 14px var(--accent-glow),
+                0 2px 0 var(--accent-deep),
+                inset 0 1px 0 color-mix(in srgb, var(--md-sys-color-on-surface) 30%, transparent);
+        }
+
+        .dpad-btn.hard-drop {
+            /* Landscape pill — opposite the main pad */
+            flex: 0 0 auto;
+            width: 148px;
+            max-width: none;
+            height: 56px;
+            background: linear-gradient(180deg, var(--danger-bright) 0%, var(--danger) 55%, var(--danger-dim) 100%);
+            border-color: var(--hairline);
+            color: white;
+            font-size: 26px;
+            border-radius: 16px;
+            box-shadow:
+                0 0 16px var(--danger-glow),
+                0 4px 0 var(--danger-deep),
+                inset 0 1px 0 var(--edge-ink);
+        }
+
+        .dpad-btn.hard-drop:active {
+            background: linear-gradient(180deg, var(--danger-bright) 0%, var(--danger-bright) 100%);
+            transform: translateY(2px) scale(0.97);
+            box-shadow:
+                0 0 12px var(--danger-glow),
+                0 2px 0 var(--danger-deep),
+                inset 0 1px 0 var(--edge-ink);
+        }
+
+        .hand-toggle {
+            display: flex;
+            gap: 6px;
+            width: min(260px, 88%);
+            justify-content: stretch;
+        }
+
+        .hand-btn {
+            flex: 1 1 0;
+            min-height: 36px;
+            padding: 8px 10px;
+            font-size: 11px;
+            letter-spacing: 0.06em;
+        }
+
+        .hand-btn[aria-pressed="true"] {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 12px var(--accent-glow-soft), 0 3px 0 var(--md-sys-color-surface-container-low);
+        }
+
+        .hud-actions .icon-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
+            border-radius: 9px;
+        }
+
+        /*
+         * Flat icon buttons.
+         *
+         * The `0 2px 0` bevel plus the gradient plus the inset highlight made five small
+         * chunky keys in a row — a different visual language from the flat Material
+         * surfaces everywhere else in the app. Dropped to a plain surface with a hairline
+         * and a small press, matching the launcher's header buttons.
+         */
+        .icon-btn {
+            width: 34px;
+            height: 34px;
+            background: var(--md-sys-color-surface-container-high);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none;
+            transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
+            touch-action: manipulation;
+            flex-shrink: 0;
+        }
+
+        .icon-btn:hover {
+            border-color: color-mix(in srgb, var(--md-sys-color-primary) 45%, transparent);
+            background: var(--md-sys-color-surface-container-highest);
+        }
+
+        .icon-btn:active {
+            transform: scale(0.94);
+        }
+
+
+        .icon-btn.active {
+            background: linear-gradient(180deg, var(--accent-bright), var(--accent));
+            color: var(--bg-dark);
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow), 0 2px 0 var(--accent-deep);
+        }
+
+        #installBtn {
+            display: none;
+        }
+
+        #installBtn.show {
+            display: flex;
+        }
+
+
+
+        @media (hover: hover) and (pointer: fine) {
+            body:not(.touch-pad) .game-container {
+                max-width: 720px;
+                margin: 0 auto;
+            }
+        }
+
+
+        .swipe-hint {
+            display: none;
+            font-size: 11px;
+            color: var(--text-dim);
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        /* Landscape tablet: larger side pads */
+        @media (orientation: landscape) and (min-width: 600px) {
+            body.touch-pad.landscape .game-container {
+                column-gap: 12px;
+                padding: 4px clamp(6px, 1.2vw, 12px);
+            }
+
+            body.touch-pad.landscape .game-container > .dpad-btn.hard-drop {
+                width: 64px;
+                height: min(200px, 52vh);
+                font-size: 28px;
+                border-radius: 18px;
+            }
+
+            body.touch-pad.landscape .game-container > .controls-main {
+                gap: 10px;
+            }
+
+            body.touch-pad.landscape .rotate-btn {
+                width: 112px;
+                height: 64px;
+                border-radius: 18px;
+                font-size: 32px;
+            }
+
+            body.touch-pad.landscape .dpad-btn:not(.hard-drop) {
+                width: 76px;
+                height: 76px;
+                border-radius: 20px;
+                font-size: 28px;
+            }
+
+            .hud {
+                padding: 4px 6px;
+                gap: 6px;
+            }
+
+            .stat {
+                padding: 3px 5px;
+            }
+
+            .stat-v {
+                font-size: 13px;
+            }
+
+            #nextCanvas {
+                width: 36px;
+                height: 36px;
+            }
+        }
+
+        /* Phone landscape: compact side pads + slim HUD */
+        @media (orientation: landscape) and (max-width: 920px) {
+            body.touch-pad.landscape .game-container {
+                column-gap: 6px;
+                padding: 3px 4px;
+            }
+
+            body.touch-pad.landscape .game-container > .dpad-btn.hard-drop {
+                width: 44px;
+                height: min(130px, 50vh);
+                font-size: 20px;
+                border-radius: 12px;
+            }
+
+            body.touch-pad.landscape .game-container > .controls-main {
+                gap: 6px;
+            }
+
+            body.touch-pad.landscape .rotate-btn {
+                width: 72px;
+                height: 44px;
+                border-radius: 12px;
+                font-size: 22px;
+            }
+
+            body.touch-pad.landscape .dpad {
+                gap: 5px;
+            }
+
+            body.touch-pad.landscape .dpad-btn:not(.hard-drop) {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                font-size: 18px;
+            }
+
+            .hud {
+                padding: 3px 5px;
+                gap: 4px;
+                border-radius: 8px;
+            }
+
+            .hud-stats {
+                gap: 4px;
+            }
+
+            .stat {
+                padding: 2px 4px;
+                border-radius: 6px;
+            }
+
+            .stat-k {
+                font-size: 9px;
+            }
+
+            .stat-v {
+                font-size: 14px;
+            }
+
+            .stat-s {
+                font-size: 8px;
+            }
+
+            .stat-next {
+                min-width: 48px;
+                padding: 2px 3px;
+            }
+
+            #nextCanvas {
+                width: 32px;
+                height: 32px;
+            }
+
+            .hud-actions .icon-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+        }
+
+        /* Portrait phones — compact HUD + pad */
+        @media (max-width: 720px) and (orientation: portrait) {
+            .game-container {
+                padding: 4px 5px;
+                gap: 4px;
+            }
+
+            .hud {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 4px;
+                padding: 4px 5px;
+                border-radius: 10px;
+            }
+
+
+            .hud-stats {
+                gap: 3px;
+            }
+
+            .stat {
+                padding: 2px 4px;
+                border-radius: 6px;
+                gap: 0;
+            }
+
+            .stat-k {
+                font-size: 9px;
+            }
+
+            .stat-v {
+                font-size: 14px;
+            }
+
+            .stat-s {
+                font-size: 8px;
+            }
+
+            .stat-next {
+                min-width: 44px;
+                padding: 2px 3px;
+            }
+
+            .hud-actions {
+                gap: 3px;
+            }
+
+            .hud-actions .icon-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+
+            .game-board {
+                margin: 0 auto;
+                max-width: 100%;
+                border-radius: var(--panel-radius, 18px);
+            }
+
+
+            #goalSub,
+            #levelProgress {
+                display: none !important;
+            }
+
+            .stat .streak-meter {
+                margin-top: 1px;
+                height: 2px;
+            }
+
+            .next-piece-name {
+                font-size: 7px;
+            }
+
+            #nextCanvas {
+                width: 28px;
+                height: 28px;
+            }
+
+            .controls-main {
+                gap: 4px;
+            }
+
+            body.touch-pad:not(.landscape) .game-container > .dpad-btn.hard-drop {
+                width: 96px;
+                height: 36px;
+                font-size: 16px;
+                border-radius: 10px;
+            }
+
+            .rotate-btn {
+                width: 64px;
+                height: 40px;
+                border-radius: 10px;
+                font-size: 20px;
+                box-shadow:
+                    0 0 8px var(--accent-secondary-glow),
+                    0 2px 0 var(--accent-secondary-deep),
+                    inset 0 1px 0 var(--edge-ink);
+            }
+
+            .dpad {
+                gap: 5px;
+            }
+
+            .dpad-btn {
+                width: 46px;
+                height: 46px;
+                border-radius: 12px;
+                font-size: 18px;
+            }
+
+            .dpad-btn.hard-drop {
+                width: 96px;
+                height: 36px;
+                font-size: 16px;
+                border-radius: 10px;
+            }
+
+            .hand-toggle {
+                width: min(240px, 90%);
+            }
+
+            .hand-btn {
+                min-height: 30px;
+                padding: 6px 8px;
+                font-size: 10px;
+            }
+
+            .swipe-hint,
+            .control-hint {
+                display: block;
+                font-size: 9px;
+            }
+
+            .overlay {
+                gap: 6px;
+                padding: 8px;
+            }
+
+            .overlay h2 {
+                font-size: 16px;
+                letter-spacing: 0.06em;
+            }
+
+            .overlay p,
+            .start-rules,
+            .start-hint {
+                font-size: 10px;
+                max-width: 200px;
+                margin: 0;
+            }
+
+            .btn {
+                width: min(180px, 70vw);
+                min-height: 36px;
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+
+            .diff-control {
+                width: min(240px, 90%);
+                padding: 6px 8px;
+                gap: 2px;
+                margin: 0;
+            }
+
+            .diff-head {
+                font-size: 9px;
+            }
+
+            .diff-control input[type="range"] {
+                height: 18px;
+            }
+        }
+
+        /* Narrow portrait: collapse secondary HUD text */
+        @media (max-width: 420px) and (orientation: portrait) {
+            /*
+             * The brand used to take row 1 column 1 with the buttons beside it. With it
+             * gone there is nothing to sit left of the buttons, so the buttons take the
+             * whole of row 1 and the stats keep the full-width row 2.
+             */
+            .hud {
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-rows: auto auto;
+            }
+
+            .hud-actions {
+                grid-column: 1;
+                grid-row: 1;
+                justify-self: end;
+            }
+
+            .hud-stats {
+                grid-column: 1 / -1;
+                grid-row: 2;
+            }
+
+            .stat-s {
+                display: none;
+            }
+        }
+
+        @media (max-width: 380px) and (orientation: portrait) {
+            .dpad-btn {
+                width: 42px;
+                height: 42px;
+                font-size: 16px;
+            }
+            .dpad-btn.hard-drop {
+                width: 84px;
+                height: 32px;
+                font-size: 14px;
+            }
+            .rotate-btn {
+                width: 56px;
+                height: 36px;
+                font-size: 18px;
+            }
+            .stat-v {
+                font-size: 13px;
+            }
+            #nextCanvas {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        @media (display-mode: standalone), (display-mode: minimal-ui) {
+        }

@@ -1,0 +1,1488 @@
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * THEME TOKENS
+ *
+ * Every colour below is derived from the Material 3 roles that ../../theme.css
+ * writes for the palette and night mode the player picked. No palette hex values
+ * live in this file except the four "cell category" colours, and those are not
+ * chrome — see CATEGORY COLOURS below.
+ * ---------------------------------------------------------------------------
+ */
+:root {
+    /*
+     * The menu is a pill, the rest of the panels are cards.
+     *
+     * Its own token rather than a fallback on --panel-radius: that variable is
+     * defined in theme.css at 18px, so `var(--panel-radius, 34px)` resolves to
+     * 18px and the fallback is dead code -- as it is on every other panel in the
+     * app that carries one.
+     */
+    --menu-radius: 34px;
+    --bg-deep: var(--md-sys-color-surface-container-lowest);
+    --bg: var(--md-sys-color-surface-container-low);
+    --bg-mid: var(--md-sys-color-surface-container);
+    --bg-card-solid: var(--md-sys-color-surface-container-high);
+    --bg-card: color-mix(in srgb, var(--md-sys-color-surface-container-high) 72%, transparent);
+    --bg-cell: color-mix(in srgb, var(--md-sys-color-surface-container-highest) 82%, var(--md-sys-color-primary));
+    --bg-cell-hover: color-mix(in srgb, var(--md-sys-color-surface-container-highest) 68%, var(--md-sys-color-primary));
+    --wp-cell-deep: color-mix(in srgb, var(--md-sys-color-surface-container-highest) 92%, black);
+    --bg-cell-active: var(--md-sys-color-primary);
+
+    --text: var(--md-sys-color-on-surface);
+    --text-dim: var(--md-sys-color-on-surface-variant);
+
+    /* The old fixed palette was hot pink; `primary` is whatever the user picked. */
+    --accent: var(--md-sys-color-primary);
+    --accent-bright: color-mix(in srgb, var(--md-sys-color-primary) 38%, white);
+    --accent-hover: color-mix(in srgb, var(--md-sys-color-primary) 72%, white);
+    --accent-2: var(--md-sys-color-secondary);
+    --accent-2-deep: color-mix(in srgb, var(--md-sys-color-secondary) 80%, black);
+    --accent-deep: color-mix(in srgb, var(--md-sys-color-primary) 70%, black);
+    --gold: var(--md-sys-color-tertiary);
+    --success: var(--md-sys-color-tertiary);
+    --danger: var(--md-sys-color-error);
+    --danger-bright: color-mix(in srgb, var(--md-sys-color-error) 38%, white);
+    --danger-deep: color-mix(in srgb, var(--md-sys-color-error) 68%, black);
+
+    /* Textures and bevels, not hairlines: these stay faint on purpose. */
+    --grid-ink: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+    --edge-ink: color-mix(in srgb, var(--md-sys-color-on-surface) 10%, transparent);
+
+    /* Hairlines need a floor. See the note in ../../theme.css. */
+    --hairline: color-mix(in srgb, var(--md-sys-color-on-surface) 30%, transparent);
+    --hairline-strong: color-mix(in srgb, var(--md-sys-color-on-surface) 55%, transparent);
+
+    --radius: 16px;
+    --shadow: 0 12px 40px color-mix(in srgb, var(--md-sys-color-scrim) 45%, transparent);
+    --glow: 0 0 28px color-mix(in srgb, var(--md-sys-color-primary) 45%, transparent);
+    /*
+     * Was a bespoke pair — 'Trebuchet MS' body and a heavy 'Segoe UI Black'/'Impact'
+     * display face. Both now resolve to the single stack defined in theme.css, so this
+     * game and the rest of the app are typographically identical.
+     *
+     * The display weight is kept for headings: the same face at a heavier weight still
+     * separates title from body without reintroducing a second font.
+     */
+    --font: var(--font-sans);
+    --font-display: var(--font-sans);
+
+    /*
+     * CATEGORY COLOURS — the one place a fixed palette is unavoidable.
+     *
+     * Four cell categories (dl / tl / dw / tw) are told apart by colour and are
+     * explained by the legend chips, so these hues are game data, not chrome.
+     * Collapsing them onto the palette would remove the information the player
+     * needs — and `tw` tried that at first and became a second green under the
+     * green palette, which is exactly the collision the categories must not have.
+     * All four stay fixed, with a darker set for light mode so they keep their
+     * contrast against a light board. Everything that is *not* a category —
+     * panels, buttons, letters, the score, the header — follows the palette.
+     */
+    --wp-cat-1: #1f9d56;         /* dl */
+    --wp-cat-1-deep: #136b3c;
+    --wp-cat-2: #0e7490;         /* tl */
+    --wp-cat-2-deep: #0b4f63;
+    --wp-cat-3: #b07800;         /* dw */
+    --wp-cat-3-deep: #7d5400;
+    --wp-cat-4: #b01640;          /* tw */
+    --wp-cat-4-deep: #7a0e2b;
+
+    /* Small text sitting on a 10% wash of its own colour needs the deep variant. */
+    --wp-wash-ink: var(--wp-cat-1-deep);
+}
+
+/*
+ * Dark mode gets the brighter original set. Glows and glow-shadows that read as
+ * a highlight on a dark board read as mud on a light one, so the dark block is
+ * where most of the neon comes from.
+ */
+[data-theme='dark'] {
+    --bg-cell: color-mix(in srgb, var(--md-sys-color-surface-container-highest) 72%, var(--md-sys-color-primary));
+    --wp-cell-deep: color-mix(in srgb, var(--md-sys-color-surface-container-highest) 86%, black);
+
+    --wp-cat-1: #3dff9a;
+    --wp-cat-1-deep: #1f9d56;
+    --wp-cat-2: #5ce1ff;
+    --wp-cat-2-deep: #2763b0;
+    --wp-cat-3: #ffd24a;
+    --wp-cat-3-deep: #d98a00;
+    --wp-cat-4: #ff3d68;
+    --wp-cat-4-deep: #bd2e33;
+    --wp-wash-ink: var(--wp-cat-1);
+}
+
+html, body {
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+}
+
+body {
+    font-family: var(--font);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+    background:
+        radial-gradient(1200px 700px at 10% -10%, color-mix(in srgb, var(--md-sys-color-primary) 28%, transparent), transparent 55%),
+        radial-gradient(900px 600px at 110% 10%, color-mix(in srgb, var(--wp-cat-2) 18%, transparent), transparent 50%),
+        radial-gradient(700px 500px at 50% 110%, color-mix(in srgb, var(--wp-cat-3) 12%, transparent), transparent 45%),
+        linear-gradient(165deg, var(--bg) 0%, var(--bg-mid) 55%, var(--bg-deep) 100%);
+    background-attachment: fixed;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.35;
+    background-image:
+        linear-gradient(var(--grid-ink) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-ink) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+    z-index: 0;
+}
+
+#app {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 100vw;
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: max(8px, env(safe-area-inset-top)) 10px max(8px, env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+}
+
+.hidden { display: none !important; }
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+
+.made-with {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: 4px;
+    opacity: 0.9;
+    line-height: 1.35;
+}
+
+.made-with a {
+    color: var(--cyan);
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--wp-cat-2) 35%, transparent);
+}
+
+.made-with a:hover {
+    color: var(--md-sys-color-on-primary);
+}
+
+#menu-screen,
+#result-screen,
+#highscore-screen {
+    width: 100%;
+    max-width: 520px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    animation: screenIn 0.45s ease both;
+    -webkit-overflow-scrolling: touch;
+}
+
+#menu-screen {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* Pulled in from the edges. At 520px on a wide window the pill ran to the
+       screen edge and read as a full-bleed sheet rather than as one object
+       sitting on the page; on a phone the same padding is what keeps it off
+       the rounded corners of the display. */
+    padding: 0 14px;
+    overflow: hidden;
+    /* Centre the panel in the space below the title. It was top-aligned, so on a tall
+       phone the menu sat in the upper half with a third of the screen empty beneath it. */
+    justify-content: center;
+}
+
+/*
+ * The menu as one surface.
+ *
+ * Four separately-bordered boxes stacked from the top of the screen read as a list that
+ * had run out, not as a screen. Inside one panel they read as rows of a single thing:
+ * the border, background and shadow are declared once here, and each row is separated
+ * from the next by a single hairline — the same device the stat strip uses between its
+ * cells, so the panel and the strip inside it are visibly the same material.
+ *
+ * The rows keep their own vertical padding; only their box treatment is removed.
+ */
+.menu-panel {
+    width: 100%;
+    flex: 0 1 auto;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-card);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--hairline);
+    /* A big pill, not a card. 18px read as a rounded rectangle next to the
+       launcher's tiles; the menu is one object, so it is shaped like one. Not a
+       stadium -- the panel is taller than it is wide, and curving it to a full
+       half-circle at each end would pinch the mode grid. */
+    border-radius: var(--menu-radius);
+    box-shadow: var(--shadow);
+    /* Bleed the hairline dividers to the panel edge so they span it, not the padded
+       content box, without the rows needing negative margins. The radius is
+       repeated here because overflow:hidden clips the corners square; without
+       it the first row's background paints over the curve. */
+    overflow: hidden;
+}
+
+/* Rows are hairline-separated rather than individually bordered. */
+.menu-panel > * + * {
+    border-top: 1px solid var(--hairline);
+}
+
+/* A row's own surface treatment goes; the panel's is the only one. */
+.menu-panel .card,
+.menu-panel .stat-strip {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    margin: 0;
+}
+
+.menu-panel .stat-strip {
+    padding: 10px 6px;
+}
+
+.menu-panel .card {
+    padding: 14px 16px;
+}
+
+/* The action buttons and the dictionary note sit at the foot of the panel, so they need
+   the same inset the other rows have — otherwise they touch the panel's border. */
+.menu-panel .menu-actions {
+    padding: 12px 16px;
+}
+
+.menu-panel .dict-status {
+    padding: 0 16px 10px;
+}
+
+/*
+ * Everything in the panel is centred on its own axis.
+ *
+ * The rows were laid out flush left, which made the panel read as a settings
+ * sheet rather than as one centred object -- and it was the shape the user asked
+ * for that made the difference visible: at 18px the panel was a rounded
+ * rectangle with ragged contents, at 34px it is a pill and the contents have to
+ * sit on its centre line or the curve frames nothing.
+ *
+ * The mode grid keeps its two flush columns and is centred through its own
+ * contents, not by centring the grid: it is 1fr 1fr, so it already spans the
+ * panel and there is nothing to centre.
+ */
+.menu-panel .stat-strip {
+    text-align: center;
+}
+
+.menu-panel .stat-strip .stat-cell {
+    /* The cells keep their hairline dividers -- they are what makes three
+       numbers read as one strip rather than three loose figures. Only the text
+       inside each one is centred. */
+    align-items: center;
+}
+
+.menu-panel .card,
+.menu-panel .dict-status {
+    text-align: center;
+}
+
+@keyframes screenIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+}
+
+/*
+ * The stat strip — deliberately the same construction as Blocks' HUD bar: one flat
+ * surface, one border, cells separated by a single hairline, label above value above a
+ * dim sub-line. Nothing here is a card inside a card, which is what the previous
+ * menu (mode card, level card, actions card) amounted to.
+ */
+.stat-strip {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    margin: 0 0 14px;
+    padding: 8px 6px;
+    background: var(--bg-mid);
+    border: 1px solid var(--hairline);
+    border-radius: var(--panel-radius, 18px);
+    box-shadow: var(--shadow);
+}
+
+.stat-cell {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    padding: 2px 12px;
+    border-left: 1px solid var(--hairline);
+}
+
+.stat-cell:first-child {
+    border-left: 0;
+    padding-left: 6px;
+}
+
+.stat-key {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-value {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* A found word can be long; it needs to shrink rather than stretch its cell. */
+.stat-value-word {
+    font-size: 15px;
+}
+
+.stat-sub {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Narrow phones: the third cell is the least load-bearing, so it goes first. */
+@media (max-width: 420px) {
+    .stat-cell {
+        padding: 2px 8px;
+    }
+
+    .stat-cell:last-child {
+        display: none;
+    }
+}
+
+.card {
+    background: var(--bg-card);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--hairline);
+    border-radius: var(--panel-radius, 18px);
+    padding: 14px 16px;
+    margin-bottom: 0;
+    box-shadow: var(--shadow);
+    width: 100%;
+    flex: 0 0 auto;
+}
+
+.card h2 {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.card h2::after {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 2px;
+    margin-top: 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+}
+
+.card > p {
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.card a {
+    color: var(--cyan);
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--wp-cat-2) 35%, transparent);
+}
+
+.card ul {
+    padding-left: 16px;
+    margin-top: 6px;
+}
+
+.card li {
+    margin-bottom: 4px;
+    color: var(--text-dim);
+    line-height: 1.3;
+    font-size: 0.78rem;
+}
+
+.menu-actions {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 8px;
+    width: 100%;
+    flex: 0 0 auto;
+}
+
+#btn-install {
+    width: 100%;
+    margin-top: 0;
+    flex: 0 0 auto;
+}
+
+#btn-install:not(.hidden) {
+    display: block;
+}
+
+.btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    margin-bottom: 0;
+}
+
+.btn:active { transform: scale(0.975); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2-deep) 55%, var(--accent-2) 100%);
+    color: var(--md-sys-color-on-primary);
+    box-shadow: var(--glow), 0 8px 20px color-mix(in srgb, var(--md-sys-color-primary) 28%, transparent);
+}
+
+.btn-primary:hover:not(:disabled) {
+    filter: brightness(1.08);
+    box-shadow: 0 0 36px color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent), 0 10px 24px color-mix(in srgb, var(--md-sys-color-primary) 35%, transparent);
+}
+
+.btn-secondary {
+    background: color-mix(in srgb, var(--bg-cell) 75%, transparent);
+    color: var(--text);
+    border: 1px solid var(--hairline);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--bg-cell-hover);
+}
+
+.dict-status {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    text-align: center;
+    min-height: 0.9em;
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.dict-status.error {
+    color: var(--danger);
+}
+
+.btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-error) 55%, transparent);
+    font-size: 0.85rem;
+    padding: 12px;
+    letter-spacing: 0.03em;
+}
+
+.btn-danger:hover {
+    background: color-mix(in srgb, var(--md-sys-color-error) 12%, transparent);
+}
+
+/* ── Mode Selection ── */
+.mode-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.mode-btn {
+    position: relative;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--wp-cell-deep) 70%, transparent);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    padding: 8px 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    color: var(--text);
+    text-align: center;
+    font-family: inherit;
+}
+
+.mode-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--md-sys-color-primary) 22%, transparent), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.mode-btn > * { position: relative; z-index: 1; }
+
+.mode-btn:hover {
+    background: color-mix(in srgb, var(--bg-cell-hover) 55%, transparent);
+    transform: translateY(-2px);
+}
+
+.mode-btn.active {
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 70%, transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--md-sys-color-primary) 32%, transparent), color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--md-sys-color-primary) 35%, transparent), 0 8px 24px color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent);
+    transform: translateY(-2px) scale(1.02);
+}
+
+.mode-btn.active::before { opacity: 1; }
+
+.mode-hint {
+    margin: 8px 0 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent-2);
+    text-align: center;
+}
+
+.mode-icon {
+    font-size: 1.25rem;
+    filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--md-sys-color-scrim) 35%, transparent));
+}
+
+.mode-name {
+    font-weight: 800;
+    font-size: 0.88rem;
+    letter-spacing: 0.03em;
+}
+
+.mode-desc {
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    line-height: 1.2;
+}
+
+/* ── Level Display ── */
+.level-card {
+    text-align: center;
+}
+.level-picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.level-stepper {
+    flex: 0 0 auto;
+    /* 44px, not the 38px this was. Below 44 the stepper is a miss for a thumb that is
+       also holding the device one-handed, and the menu has room for the larger target
+       at every size it is measured at — 320x568 leaves 46px of slack above and below
+       the panel, so this costs 6px of that and nothing else. */
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--bg-card-solid) 85%, transparent);
+    color: var(--text);
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1;
+    border: 1px solid var(--hairline);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.level-stepper:active {
+    background: var(--bg-cell-active);
+    color: var(--md-sys-color-on-primary);
+    transform: scale(0.94);
+}
+
+#level-slider {
+    flex: 1;
+    min-width: 0;
+    height: 28px;
+    accent-color: var(--accent);
+    touch-action: manipulation;
+    cursor: pointer;
+}
+
+.xp-bar-container {
+    background: color-mix(in srgb, var(--md-sys-color-scrim) 35%, transparent);
+    border-radius: 999px;
+    height: 14px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--hairline);
+}
+
+.xp-bar {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--gold));
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    transition: width 0.45s cubic-bezier(0.2, 0.9, 0.2, 1);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--md-sys-color-primary) 45%, transparent);
+}
+
+.xp-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 14px;
+    text-align: center;
+    /*
+     * Must read on an empty dark track *and* on a filled primary gradient.
+     * on-primary is ink for text sitting on a solid primary button — on crimson
+     * dark it is a deep maroon that vanishes against the empty track (0 XP).
+     */
+    color: #fff;
+    text-shadow:
+        0 0 3px color-mix(in srgb, var(--md-sys-color-scrim) 90%, transparent),
+        0 1px 2px color-mix(in srgb, var(--md-sys-color-scrim) 80%, transparent);
+}
+
+/* ── Game screen (fit viewport, HUD never clipped) ── */
+#game-screen {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 560px;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    gap: 6px;
+}
+
+/* ── Game HUD ── */
+.game-hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 0;
+    padding: 6px 10px;
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    flex: 0 0 auto;
+}
+
+.hud-item {
+    text-align: center;
+    min-width: 70px;
+}
+
+.hud-center {
+    flex: 1;
+}
+
+.hud-label {
+    display: block;
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.hud-value {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.55rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    line-height: 1.1;
+}
+
+.hud-mode-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: var(--md-sys-color-on-primary);
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--md-sys-color-primary) 35%, transparent);
+}
+
+.btn-quit {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--bg-card-solid) 85%, transparent);
+    color: var(--text-dim);
+    border: 1px solid var(--hairline);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.btn-quit:active {
+    background: var(--bg-cell-active);
+    color: var(--md-sys-color-on-primary);
+}
+
+#timer.warning {
+    color: var(--danger);
+    animation: pulseWarn 0.9s ease infinite;
+}
+
+@keyframes pulseWarn {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+}
+
+/* ── Rush bar ── */
+.rush-bar {
+    width: 100%;
+    background: color-mix(in srgb, var(--md-sys-color-scrim) 35%, transparent);
+    border-radius: 999px;
+    height: 16px;
+    margin-bottom: 0;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--hairline);
+    flex: 0 0 auto;
+}
+
+.rush-fill {
+    background: linear-gradient(90deg, var(--success), var(--cyan), var(--accent));
+    height: 100%;
+    width: 50%;
+    border-radius: 999px;
+    transition: width 0.3s;
+    box-shadow: 0 0 16px color-mix(in srgb, var(--wp-cat-1) 35%, transparent);
+}
+
+.rush-text {
+    position: absolute;
+    inset: 0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+    color: var(--md-sys-color-on-primary);
+    text-shadow: 0 1px 2px color-mix(in srgb, var(--md-sys-color-scrim) 60%, transparent);
+}
+
+/* ── Challenge bar ── */
+.challenge-bar {
+    width: 100%;
+    text-align: center;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--wp-cat-3) 15%, transparent), color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent));
+    border: 1px solid color-mix(in srgb, var(--wp-cat-3) 28%, transparent);
+    border-radius: 10px;
+    padding: 6px;
+    margin-bottom: 0;
+    font-weight: 800;
+    color: var(--gold);
+    font-size: 0.82rem;
+    letter-spacing: 0.03em;
+    flex: 0 0 auto;
+}
+
+/* ── Grid ── */
+#grid-container {
+    position: relative;
+    width: min(100%, calc(100dvh - 210px));
+    max-width: 100%;
+    max-height: calc(100dvh - 210px);
+    aspect-ratio: 1;
+    height: auto;
+    margin: 0 auto;
+    touch-action: none;
+    cursor: pointer;
+    filter: drop-shadow(0 16px 40px color-mix(in srgb, var(--md-sys-color-scrim) 45%, transparent));
+    flex: 0 1 auto;
+    min-height: 0;
+}
+
+.path-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.path-svg line {
+    stroke: var(--accent-hover);
+    stroke-width: 7;
+    stroke-linecap: round;
+    opacity: 0.75;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--md-sys-color-primary) 80%, transparent));
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2.5%;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 5;
+}
+
+.grid.size-5 { grid-template-columns: repeat(5, 1fr); }
+.grid.size-6 { grid-template-columns: repeat(6, 1fr); }
+
+.cell {
+    background: linear-gradient(160deg, var(--bg-cell-hover) 0%, var(--bg-cell) 55%, var(--wp-cell-deep) 100%);
+    border-radius: 18%;
+    border: 1px solid var(--hairline);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 9vw, 3.4rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: background 0.12s, transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+    position: relative;
+    text-shadow: 0 2px 6px color-mix(in srgb, var(--md-sys-color-scrim) 45%, transparent);
+    box-shadow: inset 0 1px 0 var(--edge-ink), 0 6px 14px color-mix(in srgb, var(--md-sys-color-scrim) 28%, transparent);
+}
+
+.grid.size-5 .cell { font-size: clamp(1.4rem, 7vw, 2.8rem); }
+.grid.size-6 .cell { font-size: clamp(1.1rem, 5.6vw, 2.3rem); }
+
+.cell .letter { margin: auto; }
+
+.cell.bonus {
+    border: 2px solid color-mix(in srgb, var(--md-sys-color-on-surface) 45%, transparent);
+}
+
+.cell.bonus .bonus-label {
+    position: absolute;
+    top: 3px;
+    right: 4px;
+    font-family: var(--font);
+    font-size: clamp(0.45rem, 2vw, 0.65rem);
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    opacity: 0.95;
+    text-shadow: 0 1px 2px color-mix(in srgb, var(--md-sys-color-scrim) 60%, transparent);
+}
+
+.cell.bonus-dl { background: linear-gradient(135deg, var(--wp-cat-1), var(--wp-cat-1-deep)); }
+.cell.bonus-tl { background: linear-gradient(135deg, var(--wp-cat-2), var(--wp-cat-2-deep)); }
+.cell.bonus-dw { background: linear-gradient(135deg, var(--wp-cat-3), var(--wp-cat-3-deep)); }
+.cell.bonus-tw { background: linear-gradient(135deg, var(--wp-cat-4), var(--wp-cat-4-deep)); }
+
+.cell:active {
+    background: var(--bg-cell-active) !important;
+    transform: scale(1.12) !important;
+    box-shadow: 0 0 28px color-mix(in srgb, var(--md-sys-color-primary) 85%, transparent) !important;
+    border-color: var(--md-sys-color-on-primary) !important;
+}
+
+.cell.pulse {
+    background: var(--bg-cell-active);
+    transform: scale(1.12);
+    box-shadow: 0 0 28px color-mix(in srgb, var(--md-sys-color-primary) 85%, transparent);
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) 55%, transparent);
+}
+
+.cell.selected {
+    background: linear-gradient(160deg, var(--accent-bright), var(--bg-cell-active) 60%, var(--accent-deep));
+    transform: scale(1.08);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--md-sys-color-primary) 70%, transparent);
+    z-index: 1;
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) 45%, transparent);
+}
+
+.cell.flash-error {
+    background: var(--danger) !important;
+    animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+/* ── Current word ── */
+.word-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    flex: 0 0 auto;
+}
+
+.current-word {
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: clamp(1.2rem, 5vw, 1.8rem);
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    min-height: 1.6em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(120deg, var(--accent), var(--accent-2), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 10px color-mix(in srgb, var(--md-sys-color-primary) 35%, transparent));
+}
+
+.word-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.word-actions button {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--md-sys-color-on-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+.word-actions button:active {
+    transform: scale(0.92);
+}
+
+#btn-word-submit {
+    background: linear-gradient(135deg, var(--success), var(--wp-cat-1-deep));
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--wp-cat-1) 40%, transparent);
+}
+
+#btn-word-clear {
+    background: transparent;
+    border: 2px solid var(--text-dim);
+    color: var(--text-dim);
+    font-size: 1rem;
+}
+
+/* ── Found words ── */
+.found-words {
+    width: 100%;
+    margin-top: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+#zen-end {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.bonus-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.legend-chip {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--md-sys-color-on-primary);
+    padding: 3px 8px;
+    border-radius: 8px;
+    text-shadow: 0 1px 2px color-mix(in srgb, var(--md-sys-color-scrim) 35%, transparent);
+}
+
+.legend-chip.dl { background: color-mix(in srgb, var(--wp-cat-1) 12%, transparent); border: 1px solid var(--wp-cat-1); color: var(--wp-cat-1); text-shadow: none; }
+.legend-chip.tl { background: color-mix(in srgb, var(--wp-cat-2) 12%, transparent); border: 1px solid var(--wp-cat-2); color: var(--wp-cat-2); text-shadow: none; }
+.legend-chip.dw { background: color-mix(in srgb, var(--wp-cat-3) 12%, transparent); border: 1px solid var(--wp-cat-3); color: var(--wp-cat-3); text-shadow: none; }
+.legend-chip.tw { background: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent); border: 1px solid var(--accent); color: var(--accent); text-shadow: none; }
+
+.found-words h3 {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 8px;
+}
+
+#found-count {
+    color: var(--accent);
+}
+
+#found-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+#found-list li {
+    background: color-mix(in srgb, var(--bg-card-solid) 85%, transparent);
+    border: 1px solid var(--hairline);
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    animation: popIn 0.28s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+#found-list li.invalid {
+    background: color-mix(in srgb, var(--md-sys-color-error) 15%, transparent);
+    border-color: color-mix(in srgb, var(--md-sys-color-error) 35%, transparent);
+    color: var(--danger);
+    text-decoration: line-through;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.4); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Results ── */
+.final-score {
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 8vw, 3.2rem);
+    font-weight: 900;
+    text-align: center;
+    background: linear-gradient(120deg, var(--accent), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 16px 0;
+}
+
+#result-details {
+    text-align: center;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+}
+
+#result-details p { margin-bottom: 6px; }
+
+.level-progress-bar {
+    width: 100%;
+    background: color-mix(in srgb, var(--md-sys-color-scrim) 35%, transparent);
+    height: 14px;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--hairline);
+}
+
+.level-progress-fill {
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 14px color-mix(in srgb, var(--md-sys-color-primary) 40%, transparent);
+}
+
+#level-progress-text {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 8px;
+}
+
+/* ── High scores ── */
+.hs-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.hs-tab {
+    flex: 1;
+    background: color-mix(in srgb, var(--wp-cell-deep) 70%, transparent);
+    color: var(--text-dim);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.hs-tab.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: var(--md-sys-color-on-primary);
+    border-color: transparent;
+}
+
+#highscore-list {
+    padding-left: 24px;
+    margin-bottom: 12px;
+}
+
+#highscore-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--hairline);
+    color: var(--text-dim);
+}
+
+#highscore-list li:first-child {
+    color: var(--gold);
+    font-weight: 800;
+}
+
+/* ── Short viewports (menu fitting) ── */
+/*
+ * The menu has to fit without scrolling — the app has no scroll anywhere by design — so
+ * on a short viewport it compacts rather than clipping.
+ *
+ * Measured: at 320x568 the rows needed 511px against 518px of frame, and in landscape
+ * (844x390) 406px against 330px. The panel is `overflow: hidden`, so without this the
+ * bottom row was cut off and the buttons in it were unreachable.
+ *
+ * The biggest saving is the mode grid: four modes in two rows becomes four in one, and
+ * dropping the one-line descriptions covers the rest. Both go first because the mode
+ * name alone identifies each one, and the hint line under the grid still spells out what
+ * the selected mode does.
+ */
+@media (max-height: 640px) {
+    .menu-panel .card,
+    .menu-panel .stat-strip,
+    .menu-panel .menu-actions {
+        padding: 9px 12px;
+    }
+
+    .menu-panel .dict-status {
+        padding: 0 12px 7px;
+    }
+
+    .mode-btn {
+        padding: 7px 4px;
+        gap: 1px;
+    }
+
+    .mode-desc {
+        display: none;
+    }
+
+    .mode-icon {
+        font-size: 1.05rem;
+    }
+
+    .mode-hint {
+        margin-top: 6px;
+    }
+
+    .level-picker {
+        margin-bottom: 4px;
+    }
+}
+
+/* Landscape phones: very little height to work with, so the panel gives up more. */
+@media (max-height: 460px) {
+    .menu-panel .card,
+    .menu-panel .stat-strip,
+    .menu-panel .menu-actions {
+        padding: 7px 12px;
+    }
+
+    /* An empty note reserving a whole row is not worth the height at this size. */
+    .menu-panel .dict-status {
+        display: none;
+    }
+
+    .menu-panel .dict-status.error,
+    .menu-panel .dict-status:not(:empty) {
+        display: block;
+    }
+
+    .card h2 {
+        font-size: 0.82rem;
+        margin-bottom: 5px;
+    }
+
+    .card h2::after {
+        margin-top: 4px;
+    }
+
+    .mode-btn {
+        padding: 5px 4px;
+    }
+
+    .mode-name {
+        font-size: 0.78rem;
+    }
+}
+
+/*
+ * Landscape phones get a two-column panel rather than more compaction.
+ *
+ * Shrinking further stopped working well before the content fitted: a 375px-tall frame
+ * leaves ~310px after the launcher stage bar, and a single column of title + stats +
+ * four modes + slider + two buttons cannot get under that without the buttons dropping
+ * below 44px. Stacking two of those rows beside each other does fit, and it costs the
+ * panel nothing — the width a landscape phone has going spare is exactly what a tall
+ * stack did not.
+ *
+ * The mode card takes the full height of the left column; the slider and the actions
+ * stack on the right. Title and stats stay full-width across the top because both read
+ * as a header for the whole panel, not for one column.
+ */
+/*
+ * Four modes across, wherever there is width for four labels.
+ *
+ * This was previously part of the `max-height: 640px` compaction, which put it on any
+ * short viewport — including a 320px-wide phone, where each column came out 64px and
+ * "Challenge" was clipped off by the panel's overflow:hidden. Height and width are
+ * different constraints: four across saves height, but it needs ~420px of panel to
+ * avoid truncating the labels.
+ */
+@media (min-width: 420px) {
+    .mode-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-height: 460px) and (min-width: 560px) {
+    .menu-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+        grid-template-areas:
+            "strip  strip"
+            "modes  level"
+            "modes  actions";
+        align-content: start;
+        align-items: start;
+    }
+
+    .stat-strip { grid-area: strip; }
+    .mode-card  { grid-area: modes; }
+    .level-card { grid-area: level; }
+    .menu-actions { grid-area: actions; }
+    .dict-status { display: none !important; }
+
+    /* The hairline dividers were for a single stack; in two columns the seam between
+       the columns is the divider, and a row of hairlines across both reads as noise. */
+    .menu-panel > * + * {
+        border-top: 0;
+    }
+
+    .menu-panel .level-card,
+    .menu-panel .menu-actions {
+        border-left: 1px solid var(--hairline);
+    }
+
+    .menu-panel .menu-actions {
+        margin-top: auto;
+    }
+}
+
+/* ── Landscape / Tablet ── */
+@media (orientation: landscape) and (min-width: 820px) {
+    #menu-screen,
+    #result-screen,
+    #highscore-screen {
+        width: 100%;
+        max-width: 960px;
+    }
+
+    #result-screen,
+    #highscore-screen {
+        max-width: 720px;
+    }
+
+    .mode-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    #game-screen {
+        display: grid;
+        grid-template-columns: minmax(0, min(60vh, 52vw)) minmax(240px, 1fr);
+        grid-template-rows: auto auto minmax(0, 1fr);
+        column-gap: 18px;
+        row-gap: 8px;
+        width: 100%;
+        max-width: 1200px;
+        height: 100%;
+    }
+
+    #game-screen .game-hud { grid-column: 1; grid-row: 1; }
+    #game-screen .rush-bar,
+    #game-screen .challenge-bar { grid-column: 1; grid-row: 2; margin: 0; }
+    #game-screen .challenge-bar { width: 100%; }
+
+    #game-screen #grid-container {
+        grid-column: 1;
+        grid-row: 3;
+        width: 100%;
+        height: auto;
+        max-height: none;
+        aspect-ratio: 1;
+        margin: 0;
+        overscroll-behavior: contain;
+    }
+
+    #game-screen .word-row {
+        grid-column: 2;
+        grid-row: 1;
+        height: auto;
+    }
+
+    #game-screen #zen-end {
+        grid-column: 2;
+        grid-row: 2;
+        width: auto;
+        min-width: 200px;
+        justify-self: center;
+        margin: 0;
+    }
+
+    #game-screen #found-words {
+        grid-column: 2;
+        grid-row: 3;
+        max-height: none;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        margin: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ── Toast ── */
+.toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: color-mix(in srgb, var(--bg-card-solid) 95%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--text);
+    padding: 12px 22px;
+    border-radius: 14px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    box-shadow: var(--shadow);
+    z-index: 100;
+    animation: toastIn 0.3s ease;
+    border: 1px solid var(--hairline);
+    border-left: 4px solid var(--accent);
+}
+
+.toast.error { border-left-color: var(--danger); }
+
+@keyframes toastIn {
+    0% { transform: translateX(-50%) translateY(20px); opacity: 0; }
+    100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+.noscript {
+    max-width: 420px;
+    margin: 40px auto;
+    padding: 24px;
+    text-align: center;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+}
+
+

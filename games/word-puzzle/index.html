@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" data-mono data-warm>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; manifest-src 'self'; upgrade-insecure-requests">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="no-referrer">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), clipboard-read=(), usb=(), midi=(), serial=(), display-capture=(), accelerometer=(), gyroscope=(), magnetometer=(), idle-detection=(), screen-wake-lock=(), browsing-topics=(), interest-cohort=()">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0d2340">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Word Puzzle">
+    <meta name="description" content="A privacy-first word puzzle game. 100% client-side.">
+    <title>Word Puzzle</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <!--
+        The shared Material 3 design system first (it writes the --md-sys-color-*
+        roles for [data-palette]/[data-theme]), then this game's own stylesheet,
+        which builds its tokens on top of those roles.
+    -->
+    <link rel="stylesheet" href="../../theme.css">
+    <!--
+        Puts data-palette / data-theme on this frame's <html> before first paint,
+        and listens for `storage` so a palette picked in the launcher — or in any
+        other game — lands here without a reload.
+    -->
+    <script src="../../theme-game.js"></script>
+    <link rel="stylesheet" href="../../seclusa-base.css">
+    <link rel="stylesheet" href="../../mono.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <noscript>
+        <div class="noscript">
+            <h1>JavaScript Required</h1>
+            <p>This game runs entirely in your browser. Please enable JavaScript to play.</p>
+        </div>
+    </noscript>
+
+    <div id="app">
+        <!--
+            The wordmark is gone from in here.
+
+            It duplicated what the launcher's header bar already says. The launcher puts
+            the game in the bar above it — `SECLUSA WORD PUZZLE` — so the name was on
+            screen twice at once, once in the bar and once in a pill, and the second copy
+            was the one that could fall out of step with the first.
+
+            It was also only ever visible before the round began: `body.in-game header`
+            hid it the moment play started, so the name appeared, vanished, and from then
+            on the bar's copy was all there was.
+        -->
+
+        <!-- ═══ MENU ═══ -->
+        <div id="menu-screen">
+            <!--
+                The "How to Play" disclosure used to sit here. Its rules moved to the
+                Seclusa Games launcher's "How to play" dialog, so there is one place to
+                read them rather than one per game — and the launcher's copy carries the
+                real rules (minimum two letters, the DL/TL/DW/TW bonuses, the 5+ length
+                bonus), not a summary of them.
+            -->
+
+            <!--
+                A stat strip, matching Blocks' HUD.
+
+                Blocks shows its state in one hairline-divided bar at the top of the
+                screen; Word Puzzle buried difficulty and progress inside a scrolling
+                card list below the mode picker, so the two DOM games read nothing alike
+                on arrival. Same treatment here — one row, one surface, four cells, the
+                same label/value sub-line rhythm — so the app reads as one product.
+            -->
+            <!--
+                One surface for the whole menu.
+
+                These were four separate rounded boxes — stat strip, mode card, level
+                card, action row — stacked in a flex column that starts at the top of the
+                screen. On a phone that read as a bunched-up list with a third of the
+                viewport empty below it: the content was neither one thing nor centred.
+                They are now rows inside a single panel, divided by hairlines, and the
+                panel is centred in the space below the title.
+            -->
+            <div class="menu-panel">
+                <div class="stat-strip">
+                    <div class="stat-cell">
+                        <span class="stat-key">Difficulty</span>
+                        <span class="stat-value" id="strip-level">1</span>
+                        <span class="stat-sub" id="strip-diff">Easy letters</span>
+                    </div>
+                    <div class="stat-cell">
+                        <span class="stat-key">Profile</span>
+                        <span class="stat-value" id="strip-profile">Lv 1</span>
+                        <span class="stat-sub" id="strip-xp">0 / 100 XP</span>
+                    </div>
+                    <div class="stat-cell">
+                        <span class="stat-key">Best word</span>
+                        <span class="stat-value stat-value-word" id="strip-word">—</span>
+                        <span class="stat-sub" id="strip-word-pts">No words yet</span>
+                    </div>
+                </div>
+
+                <div class="card mode-card">
+                <h2>Game Mode</h2>
+                <div class="mode-grid">
+                    <button class="mode-btn active" data-mode="classic">
+                        <span class="mode-icon">&#9201;&#xFE0E;</span>
+                        <span class="mode-name">Classic</span>
+                        <span class="mode-desc">2 min sprint</span>
+                    </button>
+                    <button class="mode-btn" data-mode="rush">
+                        <span class="mode-icon">&#9889;&#xFE0E;</span>
+                        <span class="mode-name">Rush</span>
+                        <span class="mode-desc">Words add time</span>
+                    </button>
+                    <button class="mode-btn" data-mode="zen">
+                        <span class="mode-icon">&#9775;&#xFE0E;</span>
+                        <span class="mode-name">Zen</span>
+                        <span class="mode-desc">No timer</span>
+                    </button>
+                    <button class="mode-btn" data-mode="challenge">
+                        <span class="mode-icon">&#9733;&#xFE0E;</span>
+                        <span class="mode-name">Challenge</span>
+                        <span class="mode-desc">15 words max</span>
+                    </button>
+                </div>
+                <p id="mode-hint" class="mode-hint">Classic selected &middot; press Play</p>
+                </div>
+
+                <!--
+                The strip above now carries difficulty, grid size, profile level and XP.
+                This card keeps only the control that changes them — the slider and its
+                steppers — so the menu says each thing once. Previously the difficulty
+                number, the grid description and the XP total each appeared twice on one
+                screen: once here and once in the strip.
+            -->
+            <div class="card level-card">
+                    <div class="level-picker">
+                        <button id="level-minus" class="level-stepper" aria-label="Lower difficulty">&#8722;</button>
+                        <input type="range" id="level-slider" min="1" max="100" step="1" value="1" aria-label="Difficulty level">
+                        <button id="level-plus" class="level-stepper" aria-label="Raise difficulty">&#43;</button>
+                    </div>
+                    <div class="xp-bar-container">
+                        <div class="xp-bar" id="xp-bar"></div>
+                        <span class="xp-text" id="xp-text">Profile Lv 1</span>
+                    </div>
+                </div>
+
+                <div class="menu-actions">
+                    <button id="btn-play" class="btn btn-primary">Play</button>
+                    <button id="btn-highscores" class="btn btn-secondary">High Scores</button>
+                </div>
+                <div id="dict-status" class="dict-status"></div>
+            <!--
+                The "Made with / version / About the author" footer used to live here.
+                Attribution and the app version are the launcher's job now — see the
+                About dialog in the app-level theme.js, and the single version in
+                manifest.json.
+            -->
+            </div>
+        </div>
+
+        <!-- ═══ GAME ═══ -->
+        <div id="game-screen" class="hidden">
+            <div class="game-hud">
+                <div class="hud-item">
+                    <span class="hud-label" id="timer-label">Time</span>
+                    <span id="timer" class="hud-value">2:00</span>
+                </div>
+                <div class="hud-item hud-center">
+                    <span class="hud-label">Level <span id="hud-level">1</span></span>
+                    <span id="hud-mode" class="hud-mode-tag">Classic</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Score</span>
+                    <span id="score" class="hud-value">0</span>
+                </div>
+                <button id="btn-quit" class="btn-quit" aria-label="End round and save score">&#10005;</button>
+            </div>
+
+            <div id="rush-bar" class="rush-bar hidden">
+                <div class="rush-fill" id="rush-fill"></div>
+                <span class="rush-text" id="rush-text"></span>
+            </div>
+
+            <div id="challenge-bar" class="challenge-bar hidden">
+                <span id="challenge-count">Words: 0 / 15</span>
+            </div>
+
+            <div id="grid-container">
+                <svg id="path-svg" class="path-svg"></svg>
+                <div id="grid" class="grid"></div>
+            </div>
+
+            <div id="word-row" class="word-row">
+                <div id="current-word" class="current-word">&nbsp;</div>
+                <div id="word-actions" class="word-actions hidden">
+                    <button id="btn-word-clear" aria-label="Clear word">&#10005;</button>
+                    <button id="btn-word-submit" aria-label="Submit word">&#10003;</button>
+                </div>
+            </div>
+
+            <div id="found-words" class="found-words">
+                <div class="bonus-legend">
+                    <span class="legend-chip dl">DL &times;2</span>
+                    <span class="legend-chip tl">TL &times;3</span>
+                    <span class="legend-chip dw">DW &times;2</span>
+                    <span class="legend-chip tw">TW &times;3</span>
+                </div>
+                <h3>Found Words <span id="found-count"></span></h3>
+                <ul id="found-list"></ul>
+            </div>
+        </div>
+
+        <!-- ═══ RESULTS ═══ -->
+        <div id="result-screen" class="hidden">
+            <div class="card">
+                <h2 id="result-title">Time's Up!</h2>
+                <p class="final-score">Score: <span id="final-score-value">0</span></p>
+                <div id="result-details">
+                    <p>Words found: <span id="words-found-count">0</span></p>
+                    <p>Longest word: <span id="longest-word">-</span></p>
+                    <p>Best word: <span id="best-word">-</span></p>
+                </div>
+                <div id="level-progress" class="hidden">
+                    <div class="level-progress-bar">
+                        <div class="level-progress-fill" id="level-progress-fill"></div>
+                    </div>
+                    <p id="level-progress-text"></p>
+                </div>
+            </div>
+            <button id="btn-replay" class="btn btn-primary">Play Again</button>
+            <button id="btn-menu" class="btn btn-secondary">Menu</button>
+        </div>
+
+        <!-- ═══ HIGH SCORES ═══ -->
+        <div id="highscore-screen" class="hidden">
+            <div class="card">
+                <h2>High Scores</h2>
+                <div class="hs-tabs">
+                    <button class="hs-tab active" data-hs-mode="classic">Classic</button>
+                    <button class="hs-tab" data-hs-mode="rush">Rush</button>
+                    <button class="hs-tab" data-hs-mode="zen">Zen</button>
+                    <button class="hs-tab" data-hs-mode="challenge">Challenge</button>
+                </div>
+                <ol id="highscore-list"></ol>
+                <p id="no-scores" class="hidden">No scores yet. Play a game!</p>
+            </div>
+            <button id="btn-clear-scores" class="btn btn-danger">Clear All Data</button>
+            <button id="btn-hs-menu" class="btn btn-secondary">Menu</button>
+        </div>
+
+        <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
