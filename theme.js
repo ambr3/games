@@ -569,10 +569,35 @@
         return false;
     };
 
+    /*
+     * A registration this Clear-all-data pass may touch.
+     *
+     * Owned means under *this* app's base URL — the directory that served the page —
+     * not a hardcoded path segment. A fixed `"/seclusa-games"` only matched one host
+     * path: local `serve.py` (`http://127.0.0.1:8080/`) and a GitHub Pages `/games/`
+     * deploy never matched, so workers stayed registered, skipped `clear-cache`, and
+     * refilled the offline caches on the reload that is supposed to finish the wipe.
+     *
+     * Sibling apps on the same origin (Weather, NoCal, the site shell) live outside
+     * this base, so their scopes and script URLs stay untouched.
+     */
     var isOwnedRegistration = function (registration) {
         try {
-            var scope = String(registration.scope || "");
-            return scope.indexOf("/seclusa-games") !== -1;
+            var baseHref = new URL("./", window.location.href).href;
+            if (baseHref.charAt(baseHref.length - 1) !== "/") {
+                baseHref += "/";
+            }
+
+            var underBase = function (absolute) {
+                if (!absolute) return false;
+                var href = new URL(String(absolute), window.location.href).href;
+                return href === baseHref || href.indexOf(baseHref) === 0;
+            };
+
+            if (underBase(registration.scope)) return true;
+
+            var worker = registration.active || registration.waiting || registration.installing;
+            return !!(worker && underBase(worker.scriptURL));
         } catch (err) {
             return false;
         }

@@ -505,7 +505,12 @@ self.addEventListener("fetch", function (event) {
      * else is served from the network and never written down.
      */
     function keepable() {
-        return url.search === "" || /^v=[0-9][\d.]*$/.test(url.search);
+        /*
+         * `URL.search` includes the leading `?`. The allowlist used to be
+         * `/^v=[0-9]…$/`, which never matched `?v=0.1.28`, so the second branch was
+         * dead and only empty-query URLs counted as keepable.
+         */
+        return url.search === "" || /^\?v=[0-9][\d.]*$/.test(url.search);
     }
     var keep = keepable();
 

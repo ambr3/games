@@ -27,7 +27,7 @@ is built on inside the game itself, under About.
 
 ## Features
 
-- Version 0.1.28
+- Version 0.1.29
 - The games: Seclusa Blocks, Seclusa Klondike, Seclusa Munch, Seclusa Pyramid,
   Word Puzzle
 - Sound, how-to-play, theme and about buttons across the top

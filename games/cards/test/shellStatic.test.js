@@ -338,6 +338,48 @@ describe('manifests', () => {
     });
 });
 
+describe('clear-all-data ownership is host-path independent', () => {
+    it('does not hardcode a /seclusa-games path for worker ownership', async () => {
+        /*
+         * That substring only matches one published path. Local serve and a /games/
+         * GitHub Pages host never matched, so Clear all data left workers alive.
+         */
+        const theme = await text('theme.js');
+        expect(theme).not.toMatch(/indexOf\s*\(\s*["']\/seclusa-games["']\s*\)/);
+    });
+
+    it('keys ownership off this page\'s base URL and the registration scope', async () => {
+        const theme = await text('theme.js');
+        const body = theme.match(
+            /var isOwnedRegistration = function \(registration\) \{[\s\S]*?\n    \};/
+        );
+        expect(body).not.toBeNull();
+        expect(body[0]).toContain('location.href');
+        expect(body[0]).toContain('new URL("./"');
+        expect(body[0]).toContain('registration.scope');
+        expect(body[0]).toContain('scriptURL');
+    });
+});
+
+describe('service worker cache allowlist', () => {
+    it('accepts the launcher ?v= stamp (URL.search includes the ?)', async () => {
+        /*
+         * keepable() reads url.search, which is "?v=0.1.28" — including the leading
+         * "?". A regex that starts at "v=" never matches, so the allowlist branch is
+         * dead and every queried URL is treated as unkeepable.
+         */
+        const sw = await text('sw.js');
+        expect(sw).toContain('/^\\?v=[0-9][\\d.]*$/.test(url.search)');
+
+        const re = /^\?v=[0-9][\d.]*$/;
+        expect(re.test('?v=0.1.28')).toBe(true);
+        expect(re.test('?v=1')).toBe(true);
+        expect(re.test('v=0.1.28')).toBe(false);
+        expect(re.test('?evil=1')).toBe(false);
+        expect(re.test('?v=0.1.28&x=1')).toBe(false);
+    });
+});
+
 describe('the palette list cannot drift', () => {
     /*
      * The palette list is duplicated in three files: theme.js and theme-game.js for the

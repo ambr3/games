@@ -3,7 +3,7 @@
     "short_name": "Seclusa",
     "description": "A privacy-first collection of browser games \u2014 Klondike, Pyramid, Blocks, Seclusa Munch and Word Puzzle. No ads, no tracking, no third-party requests. Everything stays on your device.",
     "id": "./manifest.json",
-    "version": "0.1.28",
+    "version": "0.1.29",
     "start_url": "./",
     "scope": "./",
     "display": "standalone",

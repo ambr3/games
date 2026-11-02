@@ -4,6 +4,15 @@ All notable changes to Seclusa Games. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.29] - 2026-11-02
+
+### Fixed
+- Clear all data now unregisters this app's service workers on any host path (not only `/seclusa-games`), so offline caches stay wiped after reload
+- Service worker `keepable()` recognises launcher `?v=` URLs (`URL.search` includes the leading `?`)
+
+### Changed
+- Cache name and manifest version **0.1.29**
+
 ## [0.1.28] - 2026-11-02
 
 ### Added
