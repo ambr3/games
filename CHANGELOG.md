@@ -4,6 +4,12 @@ All notable changes to Seclusa Games. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.32] - 2026-11-03
+
+### Changed
+- Klondike / Pyramid score and time pills share the same height and type size
+- Cache name and manifest version **0.1.32**
+
 ## [0.1.31] - 2026-11-03
 
 ### Changed

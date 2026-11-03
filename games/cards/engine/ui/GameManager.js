@@ -181,7 +181,7 @@ export class GameManager {
         this.scoreChip.setAttribute('role', 'button');
         this.scoreChip.tabIndex = 0;
         this.scoreChip.setAttribute('aria-label', strings.title_activity_statistics);
-        this.scoreChip.innerHTML = iconSvg('star', 26);
+        this.scoreChip.innerHTML = iconSvg('star', 22);
         this.scoreValue = el('span', 'chip-score');
         this.scoreChip.appendChild(this.scoreValue);
         this.scoreChip.addEventListener('click', () => this.host.openStatistics());
@@ -519,8 +519,6 @@ export class GameManager {
         shared.animate.layoutWidth = playfield.width;
         shared.animate.layoutHeight = playfield.height;
         this.root.style.setProperty('--card-width', Card.width + 'px');
-        this.scoreValue.style.fontSize = `calc(20px + 0.2 * var(--card-width))`;
-        this.timeValue.style.fontSize = `calc(12px + 0.1 * var(--card-width))`;
         shared.scores.load();
         this.updateLimitedRecyclesCounter();
     }

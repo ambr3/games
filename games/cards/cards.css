@@ -268,11 +268,13 @@ button {
 }
 
 /* mainButtonScores / mainTextViewTime: 12dp sides, 4dp top and bottom, 6dp elevation.
-   Each sits 2dp in from its own parent edge (layout_marginStart / layout_marginEnd). */
+   Each sits 2dp in from its own parent edge (layout_marginStart / layout_marginEnd).
+   Score and time share one height and type scale so the pair reads as matched pills. */
 .chip {
   display: inline-flex;
   align-items: center;
   box-sizing: border-box;
+  min-height: 42px;
   max-height: 100%;
   padding: 4px 12px;
   border: var(--score-chip-border);
@@ -284,23 +286,19 @@ button {
   line-height: normal;
 }
 
-/* button_scores is 26x34dp with an 8dp end margin. */
+/* button_scores icon — sized to the shared chip height rather than taller than time. */
 .chip svg {
   flex: none;
-  width: 26px;
-  height: 34px;
+  width: 22px;
+  height: 22px;
   margin-right: 8px;
   color: var(--ui-text-color, var(--menu-bar-label));
 }
 
-.chip-score {
-  font-size: calc(20px + 0.2 * var(--card-width));
-  font-weight: 700;
-}
-
-/* textAppearanceMedium, roughly 14sp */
+.chip-score,
 .chip-time {
-  font-size: calc(12px + 0.1 * var(--card-width));
+  font-size: calc(14px + 0.12 * var(--card-width));
+  font-weight: 700;
 }
 
 /* textViewRecycles — circle drawable, alignParentTop + alignParentLeft of the lower overlay. */
