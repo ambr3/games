@@ -276,21 +276,22 @@ export class Game {
         }
         Card.width = layout.width / cardsInRow;
         Card.height = Math.trunc(Card.width * 1.5);
-        if (Card.width > Game.MAX_CARD_WIDTH) {
-            Card.width = Game.MAX_CARD_WIDTH;
-            Card.height = Math.trunc(Card.width * 1.5);
-        }
-        // Shrink cards on very wide viewports so they don't grow indefinitely
-        if (layout.width > 800) {
-            const shrink = Math.max(0.5, 1 - (layout.width - 800) / 1600); // 1.0 at 800px → 0.5 at 1600px
-            Card.width = Math.round(Card.width * shrink);
+        // Width-only games (Klondike) need a tighter desktop ceiling than height-fit
+        // games (Pyramid); phones stay under either cap and are unchanged.
+        if (Card.width > Game.MAX_CARD_WIDTH_WIDTH_FIT) {
+            Card.width = Game.MAX_CARD_WIDTH_WIDTH_FIT;
             Card.height = Math.trunc(Card.width * 1.5);
         }
     }
     /** Min card-heights that must fit on a phone in landscape (foundation + tableau + chrome). */
     static PHONE_LANDSCAPE_MIN_CARD_COLUMNS = 4;
-    /** Upper bound for card width in px, so desktop-class viewports do not get oversized cards. */
+    /**
+     * Cap for height-fit layouts (Pyramid). Rarely hit; phone/tablet are width-limited
+     * first. Kept separate so Pyramid can stay at the size that already looks right.
+     */
     static MAX_CARD_WIDTH = 150;
+    /** Cap for width-only layouts (Klondike) — desktop was oversized at the shared 150. */
+    static MAX_CARD_WIDTH_WIDTH_FIT = 120;
     isPhoneLandscape(layout) {
         return !layout.isLargeTablet && layout.isLandscape;
     }
@@ -317,12 +318,6 @@ export class Game {
         }
         if (Card.width > Game.MAX_CARD_WIDTH) {
             Card.width = Game.MAX_CARD_WIDTH;
-            Card.height = Math.trunc(Card.width * 1.5);
-        }
-        // Shrink cards on very wide viewports so they don't grow indefinitely
-        if (layout.width > 800) {
-            const shrink = Math.max(0.5, 1 - (layout.width - 800) / 1600); // 1.0 at 800px → 0.5 at 1600px
-            Card.width = Math.round(Card.width * shrink);
             Card.height = Math.trunc(Card.width * 1.5);
         }
     }

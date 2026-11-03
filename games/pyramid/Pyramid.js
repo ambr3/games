@@ -83,7 +83,10 @@ export class Pyramid extends Game {
     }
 
     setStacks(layout) {
-        this.setUpCardDimensions(layout, 7 + 1, 5 + 1);
+        // Android used (7+1, 5+1). A 5.5 column fit leaves a little more height for the
+        // cards on tall desktop playfields without changing phone/tablet layouts much —
+        // those are usually width-limited first.
+        this.setUpCardDimensions(layout, 7 + 1, 5.5);
 
         const spacing = this.setUpHorizontalSpacing(layout, 7, 8);
 

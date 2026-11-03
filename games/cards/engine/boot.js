@@ -144,6 +144,9 @@ function showGame(gameId) {
     prefs.saveLastPlayedGame(entry);
     // PORT: select the per-game localStorage namespace before anything reads a game value.
     Preferences.setGameId(gameId);
+    // One game per iframe: stop Klondike/Pyramid customization leaking through the
+    // shared keys. Seeds each game's store from those shared values once.
+    prefs.ensureSettingsOnlyForThisGame();
 
     gameManager = new GameManager(mount, bitmaps, {
         exitToMenu: () => exitToLauncher(),

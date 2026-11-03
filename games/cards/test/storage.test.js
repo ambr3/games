@@ -38,6 +38,7 @@
 
 import { beforeEach, describe, expect, it } from './runner.js';
 import { shared } from '../engine/game/SharedData.js';
+import { Preferences, resetAllPreferences } from '../engine/game/Preferences.js';
 import { RecordList } from '../engine/game/RecordList.js';
 import { Scheduler } from '../engine/game/Scheduler.js';
 import { EnsureMovability } from '../engine/game/EnsureMovability.js';
@@ -345,5 +346,51 @@ describe('corrupt saved state degrades instead of taking the game with it', () =
         shared.scores.load();
 
         expect(Array.isArray(shared.scores.highScores ?? [])).toBe(true);
+    });
+});
+
+describe('Klondike and Pyramid keep separate customization', () => {
+    beforeEach(() => {
+        resetAllPreferences();
+    });
+
+    it('does not let a Klondike card-back change rewrite Pyramid', () => {
+        Preferences.setGameId('Klondike');
+        const klondike = new Preferences();
+        klondike.saveCurrentGame(0);
+        klondike.ensureSettingsOnlyForThisGame();
+        klondike.saveCardBackground(4);
+
+        Preferences.setGameId('Pyramid');
+        const pyramid = new Preferences();
+        pyramid.saveCurrentGame(1);
+        pyramid.ensureSettingsOnlyForThisGame();
+        expect(pyramid.getSavedCardBackground()).not.toBe(4);
+
+        pyramid.saveCardBackground(7);
+
+        // gamePrefix follows the static game id, so switch before each read.
+        Preferences.setGameId('Klondike');
+        expect(klondike.getSavedCardBackground()).toBe(4);
+        Preferences.setGameId('Pyramid');
+        expect(pyramid.getSavedCardBackground()).toBe(7);
+    });
+
+    it('seeds each game once from the old shared values', () => {
+        // Shared store still holds the pre-split customization.
+        const seed = new Preferences();
+        seed.saveCurrentGame(-1);
+        seed.setInt('pref_key_cards_background_new', 3);
+
+        Preferences.setGameId('Klondike');
+        const klondike = new Preferences();
+        klondike.saveCurrentGame(0);
+        klondike.ensureSettingsOnlyForThisGame();
+        expect(klondike.getSavedCardBackground()).toBe(3);
+
+        // Second call must not re-seed over a later change.
+        klondike.saveCardBackground(9);
+        klondike.ensureSettingsOnlyForThisGame();
+        expect(klondike.getSavedCardBackground()).toBe(9);
     });
 });

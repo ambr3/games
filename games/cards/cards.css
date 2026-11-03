@@ -517,6 +517,7 @@ button {
   min-height: 0;
 }
 
+/* How-to-play still uses the side list + detail pane. */
 .settings-nav {
   width: 172px;
   flex: none;
@@ -555,11 +556,31 @@ button {
   margin-top: 2px;
 }
 
+/* Game settings: one scrolling page of grouped cards — no sidebar. */
+.settings-body.settings-scroll {
+  display: block;
+  overflow-y: auto;
+  padding: 4px 12px 28px;
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
 .pref-category {
-  margin: 14px 0 6px;
-  padding: 0 12px;
+  margin: 18px 0 8px;
+  padding: 0 4px;
+}
+
+.pref-category-title {
   font: var(--type-title-medium);
   color: var(--md-sys-color-primary);
+}
+
+.pref-category-desc {
+  margin-top: 2px;
+  font: var(--type-body-medium);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .pref-card {

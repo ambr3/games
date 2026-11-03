@@ -178,7 +178,13 @@ export const DEFAULT_DYNAMIC_COLORS = false;
 export const DEFAULT_STATISTICS_HIDE_WIN_PERCENTAGE = false;
 export const DEFAULT_ENSURE_MOVABILITY = false;
 export const DEFAULT_HIDE_AUTOCOMPLETE_BUTTON = false;
-export const DEFAULT_SETTINGS_ONLY_FOR_THIS_GAME = false;
+/*
+ * Seclusa Games hosts one game per iframe, so customization must not leak between
+ * Klondike and Pyramid. The Android "settings for this game only" toggle is gone from
+ * the UI; the default is on, and `ensureSettingsOnlyForThisGame()` seeds each game's
+ * store from the old shared values once.
+ */
+export const DEFAULT_SETTINGS_ONLY_FOR_THIS_GAME = true;
 export const DEFAULT_HIDE_MENU_BUTTON = false;
 export const DEFAULT_IMMERSIVE_MODE = false;
 export const DEFAULT_DISABLE_UNDO_COSTS = false;
@@ -564,8 +570,23 @@ export class Preferences {
         return this.getGameBool(PREF_KEY_GAME_FIRST_RUN, DEFAULT_FIRST_RUN);
     }
     hasSettingsOnlyForThisGame() {
-        return (this.getSavedCurrentGame() !== DEFAULT_CURRENT_GAME &&
-            this.getGameBool(PREF_KEY_SETTINGS_ONLY_FOR_THIS_GAME, DEFAULT_SETTINGS_ONLY_FOR_THIS_GAME));
+        // One game per iframe: customization always scopes to the loaded game.
+        return this.getSavedCurrentGame() !== DEFAULT_CURRENT_GAME;
+    }
+    /**
+     * One-time seed of this game's customization store from the shared keys that used
+     * to apply to both Klondike and Pyramid. Safe to call on every boot: a written
+     * flag means this game has already been split.
+     */
+    ensureSettingsOnlyForThisGame() {
+        if (this.getSavedCurrentGame() === DEFAULT_CURRENT_GAME) {
+            return;
+        }
+        if (this.gameStore.get(this.gamePrefix + PREF_KEY_SETTINGS_ONLY_FOR_THIS_GAME) !== null) {
+            return;
+        }
+        this.copySharedCustomizationToThisGame();
+        this.setGameBool(PREF_KEY_SETTINGS_ONLY_FOR_THIS_GAME, true);
     }
     isDealingCards() {
         return this.getGameBool(PREF_KEY_DEALING_CARDS, false);
@@ -1102,24 +1123,31 @@ export class Preferences {
     /**
      * Copies the game-specific settings into the per-game store.
      * Port of `Preferences.copyToGameIndividualSettings()` (Klondike-relevant keys only).
+     *
+     * Reads the *shared* keys directly so a migration still works after
+     * `hasSettingsOnlyForThisGame()` always returns true for a loaded game.
      */
     copyToGameIndividualSettings() {
-        this.setGameBool(PREF_KEY_HIDE_MENU_BUTTON, this.getHideMenuButton());
-        this.setGameBool(PREF_KEY_HIDE_TIME, this.getSavedHideTime());
-        this.setGameBool(PREF_KEY_HIDE_SCORE, this.getSavedHideScore());
-        this.setGameBool(PREF_KEY_HIDE_AUTOCOMPLETE_BUTTON, this.getHideAutoCompleteButton());
-        this.setGameBool(PREF_KEY_4_COLOR_MODE, this.getSavedFourColorMode());
-        this.setGameString(PREF_KEY_MENU_BAR_POS_PORTRAIT, this.getSavedMenuBarPosPortrait());
-        this.setGameString(PREF_KEY_MENU_BAR_POS_LANDSCAPE, this.getSavedMenuBarPosLandscape());
-        this.setGameInt(PREF_KEY_GAME_LAYOUT_MARGINS_PORTRAIT, this.getSavedGameLayoutMarginsPortrait());
-        this.setGameInt(PREF_KEY_TEXT_COLOR, this.getSavedTextColor());
-        this.setGameInt(PREF_KEY_GAME_LAYOUT_MARGINS_LANDSCAPE, this.getSavedGameLayoutMarginsLandscape());
-        this.setGameString(PREF_KEY_BACKGROUND_COLOR, String(this.getSavedBackgroundColor()));
-        this.setGameInt(PREF_KEY_BACKGROUND_COLOR_TYPE, this.getSavedBackgroundColorType());
-        this.setGameInt(PREF_KEY_BACKGROUND_COLOR_CUSTOM, this.getSavedBackgroundCustomColor());
-        this.setGameInt(PREF_KEY_CARD_DRAWABLES, this.getSavedCardTheme());
-        this.setGameInt(PREF_KEY_CARD_BACKGROUND, this.getSavedCardBackground());
-        this.setGameInt(PREF_KEY_CARD_BACKGROUND_COLOR, this.getSavedCardBackgroundColor());
+        this.copySharedCustomizationToThisGame();
+    }
+    /** Seeds the current game store from the shared customization keys. */
+    copySharedCustomizationToThisGame() {
+        this.setGameBool(PREF_KEY_HIDE_MENU_BUTTON, this.getBool(PREF_KEY_HIDE_MENU_BUTTON, DEFAULT_HIDE_MENU_BUTTON));
+        this.setGameBool(PREF_KEY_HIDE_TIME, this.getBool(PREF_KEY_HIDE_TIME, DEFAULT_HIDE_TIME));
+        this.setGameBool(PREF_KEY_HIDE_SCORE, this.getBool(PREF_KEY_HIDE_SCORE, DEFAULT_HIDE_SCORE));
+        this.setGameBool(PREF_KEY_HIDE_AUTOCOMPLETE_BUTTON, this.getBool(PREF_KEY_HIDE_AUTOCOMPLETE_BUTTON, DEFAULT_HIDE_AUTOCOMPLETE_BUTTON));
+        this.setGameBool(PREF_KEY_4_COLOR_MODE, this.getBool(PREF_KEY_4_COLOR_MODE, DEFAULT_4_COLOR_MODE));
+        this.setGameString(PREF_KEY_MENU_BAR_POS_PORTRAIT, this.getString(PREF_KEY_MENU_BAR_POS_PORTRAIT, DEFAULT_MENU_BAR_POSITION_PORTRAIT));
+        this.setGameString(PREF_KEY_MENU_BAR_POS_LANDSCAPE, this.getString(PREF_KEY_MENU_BAR_POS_LANDSCAPE, DEFAULT_MENU_BAR_POSITION_LANDSCAPE));
+        this.setGameInt(PREF_KEY_GAME_LAYOUT_MARGINS_PORTRAIT, this.getInt(PREF_KEY_GAME_LAYOUT_MARGINS_PORTRAIT, DEFAULT_GAME_LAYOUT_MARGINS_PORTRAIT));
+        this.setGameInt(PREF_KEY_TEXT_COLOR, this.getInt(PREF_KEY_TEXT_COLOR, DEFAULT_TEXT_COLOR));
+        this.setGameInt(PREF_KEY_GAME_LAYOUT_MARGINS_LANDSCAPE, this.getInt(PREF_KEY_GAME_LAYOUT_MARGINS_LANDSCAPE, DEFAULT_GAME_LAYOUT_MARGINS_LANDSCAPE));
+        this.setGameString(PREF_KEY_BACKGROUND_COLOR, this.getString(PREF_KEY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR));
+        this.setGameInt(PREF_KEY_BACKGROUND_COLOR_TYPE, this.getInt(PREF_KEY_BACKGROUND_COLOR_TYPE, DEFAULT_BACKGROUND_COLOR_TYPE));
+        this.setGameInt(PREF_KEY_BACKGROUND_COLOR_CUSTOM, this.getInt(PREF_KEY_BACKGROUND_COLOR_CUSTOM, DEFAULT_BACKGROUND_COLOR_CUSTOM));
+        this.setGameInt(PREF_KEY_CARD_DRAWABLES, this.getInt(PREF_KEY_CARD_DRAWABLES, 1));
+        this.setGameInt(PREF_KEY_CARD_BACKGROUND, this.getInt(PREF_KEY_CARD_BACKGROUND, DEFAULT_CARD_BACKGROUND));
+        this.setGameInt(PREF_KEY_CARD_BACKGROUND_COLOR, this.getInt(PREF_KEY_CARD_BACKGROUND_COLOR, DEFAULT_CARD_BACKGROUND_COLOR));
     }
     // ------------------------------------------------------------- new setters
     // The Android app let the preference widgets write straight into SharedPreferences.

@@ -28,6 +28,9 @@
  * Trimmed for Seclusa Games: each iframe hosts one game, so there is no in-app game
  * selector / main-menu settings, and light/dark + palette live on the launcher Theme
  * control. Orientation, immersive mode, hide-menu, and "this game only" are gone too.
+ *
+ * Layout: one scrolling page of grouped cards (Rules, Look, Controls, Sound, Advanced)
+ * instead of the Android master/detail sidebar — easier to scan in a single-game iframe.
  */
 import { shared } from '../game/SharedData.js';
 import { Preferences } from '../game/Preferences.js';
@@ -42,10 +45,8 @@ export class SettingsScreen {
     bitmaps;
     host;
     root;
-    nav;
     detail;
     titleNode;
-    active = 0;
     prefs = new Preferences();
     constructor(mount, bitmaps, host) {
         this.bitmaps = bitmaps;
@@ -59,103 +60,18 @@ export class SettingsScreen {
         close.setAttribute('aria-label', strings.game_close);
         this.titleNode = el('div', 'app-bar-title', strings.title_activity_settings);
         appBar.append(close, this.titleNode);
-        const body = el('div', 'settings-body');
-        this.nav = el('div', 'settings-nav');
-        this.detail = el('div', 'settings-detail');
-        body.append(this.nav, this.detail);
-        this.root.append(appBar, body);
+        this.detail = el('div', 'settings-body settings-scroll');
+        this.root.append(appBar, this.detail);
         mount.appendChild(this.root);
-        this.buildNav();
-        this.showSection(0);
+        this.render();
     }
     sections() {
         const p = this.prefs;
         return [
             {
-                key: 'customize',
-                title: strings.settings_customization,
-                description: strings.settings_customization_description,
-                rows: [
-                    {
-                        kind: 'action',
-                        key: 'menuBarPosition',
-                        title: strings.settings_menu_bar_position,
-                        summary: this.menuBarSummary(),
-                        onOpen: () => this.pickMenuBarPosition(),
-                    },
-                    {
-                        kind: 'action',
-                        key: 'margins',
-                        title: strings.settings_game_layout_margins_title,
-                        summary: this.marginsSummary(),
-                        onOpen: () => this.pickMargins(),
-                    },
-                    {
-                        kind: 'action',
-                        key: 'backgroundColor',
-                        title: strings.settings_background_color,
-                        summary: BACKGRADIENT_NAMES[p.getSavedBackgroundColor()] ?? 'Green',
-                        onOpen: () => this.pickBackgroundColor(),
-                    },
-                    {
-                        kind: 'action',
-                        key: 'textColor',
-                        title: strings.settings_text_colour,
-                        summary: this.textColorSummary(),
-                        onOpen: () => this.pickTextColor(),
-                    },
-                    {
-                        kind: 'toggle',
-                        key: 'hideTime',
-                        title: strings.settings_hide_time,
-                        summary: '',
-                        get: () => p.getSavedHideTime(),
-                        set: (v) => p.putHideTime(v),
-                    },
-                    {
-                        kind: 'toggle',
-                        key: 'hideScore',
-                        title: strings.settings_hide_score,
-                        summary: '',
-                        get: () => p.getSavedHideScore(),
-                        set: (v) => p.putHideScore(v),
-                    },
-                    {
-                        kind: 'toggle',
-                        key: 'hideAutoComplete',
-                        title: strings.settings_hide_auto_complete_button,
-                        summary: '',
-                        get: () => p.getHideAutoCompleteButton(),
-                        set: (v) => p.putHideAutoCompleteButton(v),
-                    },
-                    {
-                        kind: 'action',
-                        key: 'cards',
-                        title: strings.settings_cards,
-                        summary: CARD_THEME_NAMES[p.getSavedCardTheme()] ?? 'Basic',
-                        onOpen: () => this.pickCardTheme(),
-                    },
-                    {
-                        kind: 'action',
-                        key: 'cardBack',
-                        title: strings.settings_cards_back,
-                        summary: `#${p.getSavedCardBackground() + 1}`,
-                        onOpen: () => this.pickCardBackground(),
-                    },
-                    {
-                        kind: 'toggle',
-                        key: 'fourColors',
-                        title: strings.settings_4_color_mode_title,
-                        summary: strings.settings_4_color_mode_text,
-                        get: () => p.getSavedFourColorMode(),
-                        set: (v) => p.putFourColorMode(v),
-                    },
-                ],
-            },
-            {
-                key: 'game',
-                title: strings.settings_game,
-                description: strings.settings_game_description,
+                key: 'rules',
+                title: strings.settings_rules_section,
+                description: strings.settings_rules_section_description,
                 rows: [
                     {
                         kind: 'choice',
@@ -176,7 +92,7 @@ export class SettingsScreen {
                         key: 'draw',
                         games: ['Klondike'],
                         title: strings.settings_klondike_draw,
-                        summary: '',
+                        summary: strings.settings_klondike_draw_summary,
                         options: [
                             { label: strings.settings_draw_1, value: '1' },
                             { label: strings.settings_draw_3, value: '3' },
@@ -194,10 +110,6 @@ export class SettingsScreen {
                         get: () => p.getSavedKlondikeLimitedRecycles(),
                         set: (v) => {
                             p.saveKlondikeLimitedRecycles(v);
-                            // Optional: these screens are reachable from the standalone
-                            // game selector, which builds a Preferences but never a
-                            // GameLogic. Without the guard the click throws inside the
-                            // handler and the switch silently snaps back.
                             shared.gameLogic?.toggleRecycles(v);
                         },
                     },
@@ -215,14 +127,8 @@ export class SettingsScreen {
                         restart: true,
                     },
                     /*
-                     * PORT: Pyramid's rows, from `res/xml/pref_pyramid.xml`. The Android app
-                     * shows these on a per-game settings screen; here the section is filtered
-                     * by the loaded game, so only the relevant rows appear.
-                     *
-                     * The two options are the win condition, and they are live:
-                     * `Pyramid.winTest()` reads this preference and additionally requires an
-                     * empty discard stack once Hard is chosen. Each label states its own
-                     * condition, so there is no summary here to repeat it.
+                     * PORT: Pyramid's rows, from `res/xml/pref_pyramid.xml`. Filtered by
+                     * the loaded game. Win-condition labels already state the rule.
                      */
                     {
                         kind: 'choice',
@@ -255,10 +161,6 @@ export class SettingsScreen {
                         get: () => p.getSavedPyramidLimitedRecycles(),
                         set: (v) => {
                             p.savePyramidLimitedRecycles(v);
-                            // Optional: these screens are reachable from the standalone
-                            // game selector, which builds a Preferences but never a
-                            // GameLogic. Without the guard the click throws inside the
-                            // handler and the switch silently snaps back.
                             shared.gameLogic?.toggleRecycles(v);
                         },
                     },
@@ -275,36 +177,141 @@ export class SettingsScreen {
                         set: (v) => p.saveNumberOfRecycles('pref_key_pyramid_number_of_recycles', v),
                         restart: true,
                     },
-                ],
-            },
-            {
-                key: 'sounds',
-                title: strings.settings_sounds_title,
-                description: strings.settings_sounds_text,
-                rows: [
                     {
                         kind: 'toggle',
-                        key: 'sound',
-                        title: strings.settings_sound,
-                        summary: '',
-                        get: () => p.getSavedSoundEnabled(),
-                        set: (v) => p.saveSoundEnabled(v),
+                        key: 'ensureMovability',
+                        title: strings.settings_ensure_movability_title,
+                        summary: strings.settings_ensure_movability_text,
+                        get: () => p.getSavedEnsureMovability(),
+                        set: (v) => p.saveEnsureMovability(v),
+                    },
+                    {
+                        kind: 'action',
+                        key: 'minMoves',
+                        title: strings.settings_ensure_movability_min_moves_title,
+                        summary: strings.settings_ensure_movability_min_moves_text,
+                        enabledWhen: () => this.minMovesState().used,
+                        whyNot: this.minMovesState().why,
+                        onOpen: () => this.pickMinMoves(),
                     },
                     {
                         kind: 'toggle',
-                        key: 'soundWin',
-                        title: strings.settings_sound_win,
-                        summary: '',
-                        get: () => p.getSavedSoundWinEnabled(),
-                        set: (v) => p.saveSoundWinEnabled(v),
+                        key: 'autoStart',
+                        title: strings.settings_auto_start_new_game_title,
+                        summary: strings.settings_auto_start_new_game_text,
+                        get: () => p.getSavedAutoStartNewGame(),
+                        set: (v) => p.saveAutoStartNewGame(v),
                     },
                 ],
             },
             {
-                key: 'movements',
-                title: strings.settings_additional_movements,
-                description: strings.settings_additional_movements_description,
+                key: 'look',
+                title: strings.settings_look_section,
+                description: strings.settings_look_section_description,
                 rows: [
+                    {
+                        kind: 'action',
+                        key: 'cards',
+                        title: strings.settings_cards,
+                        summary: CARD_THEME_NAMES[p.getSavedCardTheme()] ?? 'Basic',
+                        onOpen: () => this.pickCardTheme(),
+                    },
+                    {
+                        kind: 'action',
+                        key: 'cardBack',
+                        title: strings.settings_cards_back,
+                        summary: `#${p.getSavedCardBackground() + 1}`,
+                        onOpen: () => this.pickCardBackground(),
+                    },
+                    {
+                        kind: 'toggle',
+                        key: 'fourColors',
+                        title: strings.settings_4_color_mode_title,
+                        summary: strings.settings_4_color_mode_text,
+                        get: () => p.getSavedFourColorMode(),
+                        set: (v) => p.putFourColorMode(v),
+                    },
+                    {
+                        kind: 'action',
+                        key: 'backgroundColor',
+                        title: strings.settings_background_color,
+                        summary: BACKGRADIENT_NAMES[p.getSavedBackgroundColor()] ?? 'Green',
+                        onOpen: () => this.pickBackgroundColor(),
+                    },
+                    {
+                        kind: 'action',
+                        key: 'textColor',
+                        title: strings.settings_text_colour,
+                        summary: this.textColorSummary(),
+                        onOpen: () => this.pickTextColor(),
+                    },
+                    {
+                        kind: 'action',
+                        key: 'margins',
+                        title: strings.settings_game_layout_margins_title,
+                        summary: this.marginsSummary(),
+                        onOpen: () => this.pickMargins(),
+                    },
+                    {
+                        kind: 'action',
+                        key: 'menuBarPosition',
+                        title: strings.settings_menu_bar_position,
+                        summary: this.menuBarSummary(),
+                        onOpen: () => this.pickMenuBarPosition(),
+                    },
+                    {
+                        kind: 'toggle',
+                        key: 'hideTime',
+                        title: strings.settings_hide_time,
+                        summary: '',
+                        get: () => p.getSavedHideTime(),
+                        set: (v) => p.putHideTime(v),
+                    },
+                    {
+                        kind: 'toggle',
+                        key: 'hideScore',
+                        title: strings.settings_hide_score,
+                        summary: '',
+                        get: () => p.getSavedHideScore(),
+                        set: (v) => p.putHideScore(v),
+                    },
+                    {
+                        kind: 'toggle',
+                        key: 'hideAutoComplete',
+                        title: strings.settings_hide_auto_complete_button,
+                        summary: '',
+                        get: () => p.getHideAutoCompleteButton(),
+                        set: (v) => p.putHideAutoCompleteButton(v),
+                    },
+                ],
+            },
+            {
+                key: 'controls',
+                title: strings.settings_controls_section,
+                description: strings.settings_controls_section_description,
+                rows: [
+                    {
+                        kind: 'choice',
+                        key: 'speed',
+                        title: strings.settings_movement_speed,
+                        summary: '',
+                        options: [
+                            { label: strings.settings_movement_speed_1, value: '0.5' },
+                            { label: strings.settings_movement_speed_2, value: '1' },
+                            { label: strings.settings_movement_speed_3, value: '2' },
+                            { label: strings.settings_movement_speed_4, value: '4' },
+                        ],
+                        get: () => String(p.getSavedMovementSpeed()),
+                        set: (v) => p.saveMovementSpeed(v),
+                    },
+                    {
+                        kind: 'toggle',
+                        key: 'leftHanded',
+                        title: strings.settings_left_handed_mode,
+                        summary: strings.settings_left_handed_mode_description,
+                        get: () => p.getSavedLeftHandedMode(),
+                        set: (v) => p.saveLeftHandedMode(v),
+                    },
                     {
                         kind: 'toggle',
                         key: 'doubleTap',
@@ -352,63 +359,32 @@ export class SettingsScreen {
                 ],
             },
             {
-                key: 'other',
-                title: strings.settings_other,
-                description: strings.settings_other_description,
+                key: 'sound',
+                title: strings.settings_sounds_title,
+                description: strings.settings_sounds_text,
                 rows: [
                     {
-                        kind: 'choice',
-                        key: 'speed',
-                        title: strings.settings_movement_speed,
+                        kind: 'toggle',
+                        key: 'sound',
+                        title: strings.settings_sound,
                         summary: '',
-                        options: [
-                            { label: strings.settings_movement_speed_1, value: '0.5' },
-                            { label: strings.settings_movement_speed_2, value: '1' },
-                            { label: strings.settings_movement_speed_3, value: '2' },
-                            { label: strings.settings_movement_speed_4, value: '4' },
-                        ],
-                        get: () => String(p.getSavedMovementSpeed()),
-                        set: (v) => p.saveMovementSpeed(v),
+                        get: () => p.getSavedSoundEnabled(),
+                        set: (v) => p.saveSoundEnabled(v),
                     },
                     {
                         kind: 'toggle',
-                        key: 'leftHanded',
-                        title: strings.settings_left_handed_mode,
-                        summary: strings.settings_left_handed_mode_description,
-                        get: () => p.getSavedLeftHandedMode(),
-                        set: (v) => p.saveLeftHandedMode(v),
-                    },
-                    {
-                        kind: 'toggle',
-                        key: 'autoStart',
-                        title: strings.settings_auto_start_new_game_title,
-                        summary: strings.settings_auto_start_new_game_text,
-                        get: () => p.getSavedAutoStartNewGame(),
-                        set: (v) => p.saveAutoStartNewGame(v),
-                    },
-                    {
-                        kind: 'toggle',
-                        key: 'ensureMovability',
-                        title: strings.settings_ensure_movability_title,
-                        summary: strings.settings_ensure_movability_text,
-                        get: () => p.getSavedEnsureMovability(),
-                        set: (v) => p.saveEnsureMovability(v),
-                    },
-                    {
-                        kind: 'action',
-                        key: 'minMoves',
-                        title: strings.settings_ensure_movability_min_moves_title,
-                        summary: strings.settings_ensure_movability_min_moves_text,
-                        enabledWhen: () => this.minMovesState().used,
-                        whyNot: this.minMovesState().why,
-                        onOpen: () => this.pickMinMoves(),
+                        key: 'soundWin',
+                        title: strings.settings_sound_win,
+                        summary: '',
+                        get: () => p.getSavedSoundWinEnabled(),
+                        set: (v) => p.saveSoundWinEnabled(v),
                     },
                 ],
             },
             {
-                key: 'expert',
-                title: strings.settings_expert_settings,
-                description: strings.settings_expert_settings_text,
+                key: 'advanced',
+                title: strings.settings_advanced_section,
+                description: strings.settings_advanced_section_description,
                 rows: [
                     {
                         kind: 'action',
@@ -445,40 +421,30 @@ export class SettingsScreen {
             },
         ];
     }
-    buildNav() {
-        this.nav.innerHTML = '';
-        this.sections().forEach((section, index) => {
-            const node = button('settings-nav-item', '', () => this.showSection(index));
-            const title = el('span', 'settings-nav-title', section.title);
-            const summary = el('span', 'settings-nav-summary', section.description);
-            node.append(title, summary);
-            node.dataset.index = String(index);
-            this.nav.appendChild(node);
-        });
-    }
-    showSection(index) {
-        this.active = index;
-        const sections = this.sections();
-        const section = sections[index];
-        for (const node of Array.from(this.nav.children)) {
-            node.classList.toggle('is-active', Number(node.dataset.index) === index);
-        }
-        this.titleNode.textContent = strings.title_activity_settings;
+    /**
+     * Renders every group on one page. Rows that name a `games` list are only shown for
+     * the loaded game (Klondike vs Pyramid).
+     */
+    render() {
         this.detail.innerHTML = '';
-        const category = el('div', 'pref-category', section.title);
-        const card = el('div', 'pref-card');
-        /*
-         * PORT: the Android settings screen is per game. Rows that name a `games` list are
-         * only rendered when the loaded game is in it; rows without one are common to both.
-         */
+        this.titleNode.textContent = strings.title_activity_settings;
         const game = Preferences.getGameId();
-        for (const row of section.rows) {
-            if (row.games && !row.games.includes(game)) {
+        for (const section of this.sections()) {
+            const rows = section.rows.filter((row) => !row.games || row.games.includes(game));
+            if (rows.length === 0) {
                 continue;
             }
-            card.appendChild(this.renderRow(row));
+            const heading = el('div', 'pref-category');
+            heading.appendChild(el('div', 'pref-category-title', section.title));
+            if (section.description) {
+                heading.appendChild(el('div', 'pref-category-desc', section.description));
+            }
+            const card = el('div', 'pref-card');
+            for (const row of rows) {
+                card.appendChild(this.renderRow(row));
+            }
+            this.detail.append(heading, card);
         }
-        this.detail.append(category, card);
     }
     renderRow(row) {
         const node = el('button', 'pref-row');
@@ -546,8 +512,6 @@ export class SettingsScreen {
             selected: String(o.value) === String(current),
             onClick: () => {
                 row.set(String(o.value));
-                this.buildNav();
-                this.showSection(this.active);
                 this.afterChange(row.restart === true);
             },
         }));
@@ -558,8 +522,7 @@ export class SettingsScreen {
         });
     }
     afterChange(restart) {
-        this.buildNav();
-        this.showSection(this.active);
+        this.render();
         this.host.onChanged();
         if (restart && shared.gameLogic != null) {
             showToastText(

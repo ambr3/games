@@ -4,6 +4,22 @@ All notable changes to Seclusa Games. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.31] - 2026-11-03
+
+### Changed
+- **Klondike / Pyramid settings** are one scrolling page of clear groups (Rules, Look,
+  Controls, Sound, Advanced) instead of a six-item sidebar. Labels are plain English;
+  related options sit together.
+- Cache name and manifest version **0.1.31**
+
+### Fixed
+- **Klondike and Pyramid customization no longer share storage.** Changing card backs,
+  felt, margins, menu-bar position and related chrome in one game no longer rewrites the
+  other. Each game gets a one-time seed from the old shared values, then keeps its own.
+- **Klondike / Pyramid cards were tiny on desktop.** Removed the wide-viewport shrink that
+  halved card size above 800px. Klondike uses a 120px width-only cap on desktop; Pyramid
+  keeps its own height-fit sizing (5.5 card-heights) and is unchanged by that cap.
+
 ## [0.1.30] - 2026-11-02
 
 ### Changed

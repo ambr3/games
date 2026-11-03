@@ -25,7 +25,7 @@ import { EASY, MEDIUM, HARD, isEnsureMovabilityEnabled } from '../engine/game/Di
  *
  * Real rather than stubbed because the thing under test is a method that reads three live
  * preferences and decides a string. The bitmaps are absent, which is fine: nothing on the
- * General section asks for one, and `showSection()` only reads what the rows return.
+ * Rules section asks for one, and `render()` only reads what the rows return.
  */
 function makeSettingsScreen() {
     const bitmaps = {
@@ -128,7 +128,7 @@ describe('Settings — dependent rows follow their parent', () => {
 
     it('greys the recycle count only when recycles are unlimited', () => {
         const { screen, prefs } = makeSettingsScreen();
-        const recycles = row(screen, 'game', 'recycles');
+        const recycles = row(screen, 'rules', 'recycles');
         prefs.saveKlondikeLimitedRecycles(false);
         expect(recycles.enabledWhen()).toBe(false);
         prefs.saveKlondikeLimitedRecycles(true);
@@ -137,7 +137,7 @@ describe('Settings — dependent rows follow their parent', () => {
 
     it('greys the foundation-first row only when both its parents are on', () => {
         const { screen, prefs } = makeSettingsScreen();
-        const foundationFirst = row(screen, 'movements', 'foundationFirst');
+        const foundationFirst = row(screen, 'controls', 'foundationFirst');
         prefs.saveDoubleTapEnabled(false);
         prefs.saveDoubleTapAllCards(false);
         expect(foundationFirst.enabledWhen()).toBe(false);
@@ -149,8 +149,8 @@ describe('Settings — dependent rows follow their parent', () => {
 
     it('names both parents in the reason, since either one greys the row', () => {
         const { screen } = makeSettingsScreen();
-        const why = row(screen, 'movements', 'foundationFirst').whyNot;
-        expect(why).toContain('Enable double tap movements');
-        expect(why).toContain('Move all possible cards');
+        const why = row(screen, 'controls', 'foundationFirst').whyNot;
+        expect(why).toContain('Double-tap to move');
+        expect(why).toContain('Move the whole build');
     });
 });

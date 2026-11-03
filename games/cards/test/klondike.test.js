@@ -395,19 +395,16 @@ describe('Klondike layout', () => {
     it('caps the card size on large desktop viewports', () => {
         setupGame({ width: 1600, height: 900, isLandscape: false, isLargeTablet: true });
 
-        // At 1600px wide, card width is shrunk from the ideal 200px down via the
-        // viewport-proportional shrink (factor 0.5 at 1600px), then capped at MAX_CARD_WIDTH (150),
-        // then further shrunk to 75px.  This ensures cards never exceed the
-        // MAX_CARD_WIDTH ceiling and gradually reduce on very wide screens.
-        expect(Card.width).toBe(75);
+        // Portrait: cardsInRow 8 → ideal 200px → Klondike width-fit cap (120).
+        expect(Card.width).toBe(Game.MAX_CARD_WIDTH_WIDTH_FIT);
         expect(Card.height).toBe(Math.trunc(Card.width * 1.5));
     });
 
     it('caps landscape cards on very wide desktop viewports', () => {
-        setupGame({ width: 1600, height: 900, isLandscape: true, isLargeTablet: true });
+        setupGame({ width: 2400, height: 900, isLandscape: true, isLargeTablet: true });
 
-        // Landscape 1600px : ideal 160px → capped 150 → shrunk by factor 0.5 → 75px.
-        expect(Card.width).toBe(75);
+        // Landscape: cardsInRow 10 → ideal 240px → Klondike width-fit cap (120).
+        expect(Card.width).toBe(Game.MAX_CARD_WIDTH_WIDTH_FIT);
         expect(Card.height).toBe(Math.trunc(Card.width * 1.5));
     });
 
