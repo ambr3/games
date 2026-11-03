@@ -4,6 +4,13 @@ All notable changes to Seclusa Games. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.33] - 2026-11-03
+
+### Changed
+- About / licence Source links (launcher About and card-game About) point at
+  `https://github.com/ambr3/games` instead of the old pages.dev OSS page or Seclusa-Solitaire
+- Cache name and manifest version **0.1.33**
+
 ## [0.1.32] - 2026-11-03
 
 ### Changed

@@ -58,7 +58,7 @@ export class AboutScreen {
         info.appendChild(row(strings.about_compiled, BUILD_DATE));
         const sourceLink = el('span', 'link', 'GitHub');
         sourceLink.addEventListener('click', () => {
-            window.open('https://github.com/ambr3/Seclusa-Solitaire', '_blank', 'noopener,noreferrer');
+            window.open('https://github.com/ambr3/games', '_blank', 'noopener,noreferrer');
         });
         info.appendChild(row(strings.about_source_code, '')).lastElementChild?.append(sourceLink);
         const licenseLink = el('span', 'link', 'GPL 3.0+');

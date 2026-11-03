@@ -32,7 +32,7 @@
      * shared from here: that link is in the served document rather than in this script, and
      * it has to be a real anchor for the footer to work with JavaScript disabled.
      */
-    var SOURCE_URL = "https://ambr3.pages.dev/oss/seclusa-games/";
+    var SOURCE_URL = "https://github.com/ambr3/games";
 
     /* Must match DEFAULT_THEME_COLOR in theme-game.js, games/pacman/theme.js and the
        card engine's Preferences.js — all four read the same key. */
@@ -806,7 +806,7 @@
             var licenceLink = el("div", "row");
             licenceLink.appendChild(el("div", "row-label", "Source"));
             var licenceValue = el("div", "row-value", "Read it at ");
-            licenceValue.appendChild(link("ambr3.pages.dev/oss/seclusa-games", SOURCE_URL));
+            licenceValue.appendChild(link("github.com/ambr3/games", SOURCE_URL));
             licenceLink.appendChild(licenceValue);
             licence.appendChild(licenceLink);
             body.appendChild(licence);
