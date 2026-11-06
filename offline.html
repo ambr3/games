@@ -9,8 +9,8 @@
 
         The stylesheet below is inline, because this page has to render when the
         stylesheet request is the thing that failed. Styles are allowed by *hash*,
-        not 'unsafe-inline': one value in this meta (and in the local server's
-        offline CSP). Editing that CSS means re-hashing it — `scripts/test_serve.py`
+        not 'unsafe-inline': one extra source in this meta. The local server sends
+        no CSP header. Editing that CSS means re-hashing it — `scripts/test_serve.py`
         recomputes it from the document and fails if they drift apart.
 
         upgrade-insecure-requests was the one directive this page was missing — it is

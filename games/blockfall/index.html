@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <!--
         `frame-ancestors` is deliberately absent: browsers ignore it in a <meta> tag.
-        The local dev server sends frame-ancestors 'self' so the launcher can embed
-        this game; GitHub Pages sends neither header.
+        The local dev server sends X-Frame-Options: SAMEORIGIN so the launcher can
+        embed this game. It does not send a CSP header. GitHub Pages sends neither.
 
         frame-src 'none' stays: it restricts what THIS document may frame, and Blocks
         frames nothing.

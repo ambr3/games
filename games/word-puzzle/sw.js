@@ -318,7 +318,9 @@ self.addEventListener('fetch', (e) => {
                 .then((res) => {
                     if (!isRealDocument(res)) return serveFromCache(req);
                     const clone = res.clone();
-                    withCache().then((c) => c.put('./index.html', clone)).catch(() => {});
+                    // waitUntil: respondWith settling can kill the worker before an
+                    // unwaited put lands, so the page that just loaded is missing offline.
+                    e.waitUntil(withCache().then((c) => c.put('./index.html', clone)).catch(() => {}));
                     return res;
                 })
                 .catch(() => serveFromCache(req))
@@ -339,7 +341,7 @@ self.addEventListener('fetch', (e) => {
                 .then((res) => {
                     if (res && res.ok) {
                         const clone = res.clone();
-                        withCache().then((c) => c.put(key, clone)).catch(() => {});
+                        e.waitUntil(withCache().then((c) => c.put(key, clone)).catch(() => {}));
                         return res;
                     }
                     return withCache()
@@ -366,7 +368,7 @@ self.addEventListener('fetch', (e) => {
             return fetch(req).then((res) => {
                 if (isRealDocument(res)) {
                     const clone = res.clone();
-                    withCache().then((c) => c.put(key, clone)).catch(() => {});
+                    e.waitUntil(withCache().then((c) => c.put(key, clone)).catch(() => {}));
                 }
                 return res;
             }).catch(() =>

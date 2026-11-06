@@ -124,6 +124,14 @@ for path in LAUNCHER_PATHS + [f"/games/{game}/index.html" for game in GAMES]:
     check("Pragma" in headers and "Expires" in headers, f"{path}: missing Pragma/Expires")
     check(headers.get("X-Content-Type-Options") == "nosniff", f"{path}: missing nosniff")
     check(headers.get("Referrer-Policy") == "no-referrer", f"{path}: missing referrer policy")
+    check(
+        headers.get("Cross-Origin-Opener-Policy") == "same-origin",
+        f"{path}: missing COOP same-origin",
+    )
+    check(
+        headers.get("Cross-Origin-Resource-Policy") == "same-origin",
+        f"{path}: missing CORP same-origin",
+    )
 
 # --- document meta CSP ----------------------------------------------------------
 
@@ -181,6 +189,11 @@ for relative in DOCUMENTS:
         "unsafe-inline" not in meta.get("style-src", ""),
         f"{relative}: 'unsafe-inline' — offline.html's style is allowed by hash instead",
     )
+    if relative != "index.html":
+        check(
+            meta.get("frame-src") == "'none'",
+            f"{relative}: this document frames nothing, so frame-src must be 'none'",
+        )
 
 # offline.html style hash must match the inline <style>
 offline_html = read(os.path.join(ROOT, "offline.html"))

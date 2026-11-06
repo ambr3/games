@@ -28,8 +28,30 @@
 import { el, button } from './dom.js';
 import { strings } from './strings.js';
 import { iconSvg } from './icons.js';
-export const APP_VERSION = '1.0.0';
-export const BUILD_DATE = '2026-10-11';
+
+/*
+ * The shell version lives in one place: the launcher's <meta name="version">.
+ * This screen used to show the Android port's 1.0.0 and a compile date, which
+ * is a different product. Read the meta instead of keeping a second literal.
+ * Standalone (no launcher above this frame) has nothing to read, so the row
+ * is omitted rather than invented.
+ */
+function shellVersion() {
+    const docs = [];
+    try {
+        if (window.parent && window.parent !== window) docs.push(window.parent.document);
+    } catch {
+        /* opaque parent */
+    }
+    docs.push(document);
+    for (const doc of docs) {
+        const meta = doc.querySelector('meta[name="version"]');
+        const value = meta && meta.getAttribute('content');
+        if (value && /^[0-9][\d.]{0,31}$/.test(value)) return value;
+    }
+    return '';
+}
+
 export class AboutScreen {
     host;
     root;
@@ -54,8 +76,8 @@ export class AboutScreen {
         const info = el('div', 'card');
         info.appendChild(row(strings.about_developer, strings.about_developer_name));
         info.appendChild(row(strings.about_contact, strings.about_contact_value));
-        info.appendChild(row(strings.app_version, APP_VERSION));
-        info.appendChild(row(strings.about_compiled, BUILD_DATE));
+        const version = shellVersion();
+        if (version) info.appendChild(row(strings.app_version, version));
         const sourceLink = el('span', 'link', 'GitHub');
         sourceLink.addEventListener('click', () => {
             window.open('https://github.com/ambr3/games', '_blank', 'noopener,noreferrer');

@@ -28,7 +28,10 @@ to the browser defaults:
   - launcher paths: `X-Frame-Options: DENY`
   - `/games/<id>/…`: `X-Frame-Options: SAMEORIGIN` so the launcher can iframe them
   - `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Robots-Tag`
+  - `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Resource-Policy: same-origin`
   - `Cache-Control: no-store` (dev only — defeats the HTTP cache)
+
+GitHub Pages cannot send any of these. They apply on this server only.
 """
 
 import functools
@@ -79,6 +82,8 @@ def for_path(path):
         "Referrer-Policy": "no-referrer",
         "Permissions-Policy": PERMISSIONS_POLICY,
         "X-Robots-Tag": "noindex, nofollow",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Resource-Policy": "same-origin",
     }
 
     if game_for_path(path):

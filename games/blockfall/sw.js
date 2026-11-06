@@ -364,7 +364,9 @@ self.addEventListener('fetch', (e) => {
                 .then((res) => {
                     if (!isRealDocument(res)) return serveFromCache(e.request);
                     const clone = res.clone();
-                    withCache().then((c) => c.put('./index.html', clone)).catch(() => {});
+                    // waitUntil: respondWith settling can kill the worker before an
+                    // unwaited put lands, so the page that just loaded is missing offline.
+                    e.waitUntil(withCache().then((c) => c.put('./index.html', clone)).catch(() => {}));
                     return res;
                 })
                 .catch(() => serveFromCache(e.request))
@@ -382,20 +384,22 @@ self.addEventListener('fetch', (e) => {
         e.respondWith(
             fetch(e.request)
                 .then((res) => {
-                    if (res && res.ok) {
+                    if (res && res.ok && cacheKey) {
                         const clone = res.clone();
-                        withCache().then((c) => c.put(e.request, clone)).catch(() => {});
+                        // Query stripped: a distinct search string must not become its
+                        // own permanent entry. The page asks for these files plain.
+                        e.waitUntil(withCache().then((c) => c.put(cacheKey, clone)).catch(() => {}));
                         return res;
                     }
                     // A proxy's 502 arrives as a successful fetch. Prefer the cached
                     // copy to handing the frame an error page styled as the app.
                     return withCache()
-                        .then((cache) => cache.match(e.request))
+                        .then((cache) => cache.match(cacheKey || e.request))
                         .then((cached) => cached || res);
                 })
                 .catch(() =>
                     withCache()
-                        .then((cache) => cache.match(e.request))
+                        .then((cache) => cache.match(cacheKey || e.request))
                         .then((cached) => cached || new Response('', { status: 503, statusText: 'Offline' }))
                 )
         );
@@ -417,7 +421,7 @@ self.addEventListener('fetch', (e) => {
             return fetch(e.request, { cache: isLocal ? 'no-store' : 'default' }).then((response) => {
                 if (response && response.ok && cacheKey) {
                     const clone = response.clone();
-                    withCache().then((c) => c.put(cacheKey, clone)).catch(() => {});
+                    e.waitUntil(withCache().then((c) => c.put(cacheKey, clone)).catch(() => {}));
                 }
                 return response;
             }).catch(() =>

@@ -4,16 +4,16 @@
 <head>
 
     <!--
-        The Seclusa Games launcher frames this game, so `frame-src`/`child-src` are
-        deliberately absent (nothing here frames anything) and `frame-ancestors` is
-        absent too: browsers ignore that directive in a <meta> tag. The local server
-        sends it; GitHub Pages does not.
+        The launcher frames this game. This document frames nothing, so frame-src
+        is 'none'. Leaving the directive off would fall through to default-src
+        'self' and allow a same-origin frame. `frame-ancestors` is absent: browsers
+        ignore it in a <meta> tag. The local server sends X-Frame-Options:
+        SAMEORIGIN for this game, not frame-ancestors. GitHub Pages sends neither.
 
-        This is the app's policy minus frame-src/child-src. `connect-src 'none'` is
-        what makes the README's "no network requests" claim enforceable here rather
-        than merely stated.
+        `connect-src 'none'` is what makes the README's "no network requests" claim
+        enforceable here rather than merely stated.
     -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
 
     <title>Seclusa Munch — Seclusa Games</title>
         <!-- Lock viewport on mobile devices. -->

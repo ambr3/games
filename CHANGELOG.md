@@ -4,6 +4,22 @@ All notable changes to Seclusa Games. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.34] - 2026-11-06
+
+### Changed
+- Default page sky is faint orange ruled lines with a soft corner glow
+- Word Puzzle offline “About the author” link → `ambr3.github.io/site/about/` (was pages.dev)
+- Card About shows the shell version from the launcher, not the old Android port’s 1.0.0
+- Local dev server sends Cross-Origin-Opener-Policy and Cross-Origin-Resource-Policy `same-origin`
+- Cache name and manifest version **0.1.34**
+
+### Fixed
+- Junk query strings on a navigation no longer pile up permanent cache entries
+- Blocks and Word Puzzle finish writing the offline copy before the worker can shut down
+- Klondike, Pyramid, and Munch cannot embed a frame (`frame-src 'none'`)
+- The stage title clears when you leave a game
+- Word Puzzle’s built-in list accepts `squeeze` (was `squeez`)
+
 ## [0.1.33] - 2026-11-03
 
 ### Changed

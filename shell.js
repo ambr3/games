@@ -131,6 +131,7 @@
         stageEl.hidden = true;
         launcherEl.hidden = false;
         currentGame = null;
+        if (stageTitleEl) stageTitleEl.textContent = "";
         document.title = "Seclusa Games";
     };
 

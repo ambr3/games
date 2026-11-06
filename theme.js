@@ -723,11 +723,11 @@
             /*
              * The app version, read from the one literal in index.html.
              *
-             * This is the only place a version number is shown anywhere in the app. The
-             * `?v=` query strings that used to carry it are gone; the service workers read
-             * the version out of manifest.json to name their caches, so index.html and
-             * manifest.json are the only two places it is written down and this row is
-             * the only place a user ever sees it.
+             * The card games' About reads this same meta when they are framed here.
+             * Neither screen keeps a second copy of the number. The `?v=` query
+             * strings that used to carry it are gone; the service workers read the
+             * version out of manifest.json to name their caches, so index.html and
+             * manifest.json are the only two places it is written down.
              */
             var versionMeta = document.querySelector('meta[name="version"]');
             var version = versionMeta ? versionMeta.content : "";

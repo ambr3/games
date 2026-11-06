@@ -509,7 +509,12 @@ self.addEventListener("fetch", function (event) {
          * `URL.search` includes the leading `?`. The allowlist used to be
          * `/^v=[0-9]…$/`, which never matched `?v=0.1.28`, so the second branch was
          * dead and only empty-query URLs counted as keepable.
+         *
+         * Length is part of the allowlist. The pattern alone accepts an arbitrarily
+         * long run of digits and dots, and each distinct search string is its own
+         * cache entry until a version bump. The launcher's stamp is a short version.
          */
+        if (url.search.length > 32) return false;
         return url.search === "" || /^\?v=[0-9][\d.]*$/.test(url.search);
     }
     var keep = keepable();
@@ -559,12 +564,21 @@ self.addEventListener("fetch", function (event) {
                     }
 
                     var copy = response.clone();
-                    // waitUntil: once respondWith settles the worker may be terminated,
-                    // so an unwaited put can simply be lost -- and a page that loaded
-                    // fine online is then absent from the offline copy.
-                    event.waitUntil(withCache().then(function (cache) {
-                        return cache.put(request, copy);
-                    }).catch(function () {}));
+                    /*
+                     * waitUntil: once respondWith settles the worker may be terminated,
+                     * so an unwaited put can simply be lost -- and a page that loaded
+                     * fine online is then absent from the offline copy.
+                     *
+                     * The asset branch below refuses to store a query outside the
+                     * allowlist. A navigation is a cache key too: without the same
+                     * check, `/?` plus a unique string pins another full copy of the
+                     * document, and nothing reclaims it until a version bump.
+                     */
+                    if (keep) {
+                        event.waitUntil(withCache().then(function (cache) {
+                            return cache.put(request, copy);
+                        }).catch(function () {}));
+                    }
                     return response;
                 })
                 .catch(function () {

@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <!--
-        The frame contract, per shell.js. `frame-ancestors` and `X-Frame-Options` are
-        ignored inside a <meta> CSP. The local dev server sends SAMEORIGIN / 'self' for
-        every game so the launcher can frame them; GitHub Pages sends neither.
+        The launcher frames this game. This document frames nothing, so frame-src
+        is 'none'. `child-src 'self'` used to sit beside it and would allow a frame
+        in a browser that still treats child-src as the frame fallback.
+        `frame-ancestors` is ignored inside a <meta> CSP. The local dev server sends
+        X-Frame-Options: SAMEORIGIN so the launcher can frame this page. It does not
+        send frame-ancestors. GitHub Pages sends neither.
     -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'self'; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
     <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), clipboard-read=(), usb=(), midi=(), serial=(), display-capture=(), accelerometer=(), gyroscope=(), magnetometer=(), idle-detection=(), screen-wake-lock=(), browsing-topics=(), interest-cohort=()">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
